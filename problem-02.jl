@@ -15,6 +15,11 @@
 # are valid: they contain one a or nine c, both within the limits of their respective
 # policies.
 
+function getpattern(row)
+    i, j, char, password = match(r"^(\d+)\-(\d+) ([^:]+): (.*)$", row).captures
+    return parse(Int32, i), parse(Int32, j), char[1], password
+end
+
 function part1(inputs)
     count = 0
     for row in split(inputs, '\n')
@@ -22,11 +27,11 @@ function part1(inputs)
             continue
         end
 
-        min, max, char, password = match(r"^(\d+)\-(\d+) ([^:]+): (.*)$", row).captures
-        
+        min, max, char, password = getpattern(row)
+
         # num_found = length([x for x in eachmatch(Regex(char), password)])
-        num_found = sum(collect(password) .== char[1])
-        if parse(Int32, min) <= num_found <= parse(Int32, max)
+        num_found = sum(collect(password) .== char)
+        if min <= num_found <= max
             count += 1
         end
     end
@@ -63,10 +68,7 @@ function part2(inputs)
             continue
         end
 
-        i, j, char, password = match(r"^(\d+)\-(\d+) ([^:]+): (.*)$", row).captures
-        i = parse(Int32, i)
-        j = parse(Int32, j)
-        char = char[1]
+        i, j, char, password = getpattern(row)
 
         if xor(password[i] == char, password[j] == char)
             count += 1
