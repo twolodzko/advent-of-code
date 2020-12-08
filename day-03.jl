@@ -1,3 +1,4 @@
+# https://adventofcode.com/2020/day/3
 
 # You start on the open square (.) in the top-left corner and need to reach the
 # bottom (below the bottom-most row on your map).
@@ -17,8 +18,7 @@ function replace_at(string, ind, char)
 end
 
 function part1(patch, right, down=1)
-    println("Right $(right), down $(down)\n")
-
+    # println("Right $(right), down $(down)\n")
     trees_count = 0
     position = 1
     time_to_move = 1
@@ -34,20 +34,20 @@ function part1(patch, right, down=1)
             end
             position = mod1(position + right, length(row))
             time_to_move = down
-            println(replace_at(row, position, 'X'))
+            # println(replace_at(row, position, 'X'))
         else
             time_to_move -= 1
-            println(row)
+            # println(row)
         end
     end
-
-    println()
+    # println()
 
     return trees_count
 end
 
 
-patch = "..##.......
+patch = "
+..##.......
 #...#...#..
 .#....#..#.
 ..#.#...#.#
@@ -57,7 +57,8 @@ patch = "..##.......
 .#........#
 #.##...#...
 #...##....#
-.#..#...#.#"
+.#..#...#.#
+"
 
 @assert part1(patch, 3) == 7
 
@@ -84,3 +85,10 @@ function part2(patch, right, down)
 end
 
 @assert part2(patch, [1 3 5 7 1], [1 1 1 1 2]) == 336
+
+test = read("data/day-03.txt", String)
+println("Part 1: $(part1(test, 3))")
+println("Part 2: $(part2(test, [1 3 5 7 1], [1 1 1 1 2]))")
+
+@assert part1(test, 3) == 203
+@assert part2(test, [1 3 5 7 1], [1 1 1 1 2]) == 3316272960

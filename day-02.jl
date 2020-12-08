@@ -1,3 +1,4 @@
+# https://adventofcode.com/2020/day/2
 
 # For example, suppose you have the following list:
 
@@ -85,3 +86,10 @@ str = "
 "
 
 @assert part2(str) == 1
+
+test = read("data/day-02.txt", String)
+println("Part 1: $(part1(test))")
+println("Part 2: $(part2(test))")
+
+@assert part1(test) == 660
+@assert part2(test) == 530

@@ -1,3 +1,4 @@
+# https://adventofcode.com/2020/day/1
 
 # find the two entries that sum to 2020 and then multiply those two numbers together
 
@@ -34,3 +35,10 @@ function part2(list_of_numbers)
 end
 
 @assert part2(lst) == 241861950
+
+test = [parse(Int, x) for x in split(read("data/day-01.txt", String), '\n') if x != ""]
+println("Part 1: $(part1(test))")
+println("Part 2: $(part2(test))")
+
+@assert part1(test) == 326211
+@assert part2(test) == 131347190
