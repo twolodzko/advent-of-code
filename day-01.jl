@@ -36,7 +36,11 @@ end
 
 @assert part2(lst) == 241861950
 
-test = [parse(Int, x) for x in split(read("data/day-01.txt", String), '\n') if x != ""]
+function read_array(string::AbstractString)::Vector{Int}
+    return map(x -> parse(Int, x), filter(x -> x != "", split(string, '\n')))
+end
+
+test = read_array(read("data/day-01.txt", String))
 println("Part 1: $(part1(test))")
 println("Part 2: $(part2(test))")
 

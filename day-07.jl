@@ -72,7 +72,7 @@ function search_for_possible_bag_colors(bags, target="shiny gold")
     possible_colors = Set()
     to_search = [target]
 
-    while true
+    while !isempty(to_search)
         found = []
         for elem in to_search
             try
@@ -86,10 +86,6 @@ function search_for_possible_bag_colors(bags, target="shiny gold")
 
         end
         to_search = found
-
-        if isempty(to_search)
-            break
-        end
     end
     return possible_colors
 end
