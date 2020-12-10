@@ -90,7 +90,7 @@ end
 function parallel_count_solutions(adapters, start=0)
     adapters_left = length(adapters)
     if adapters_left == 0
-        return 1
+        return 0
     end
     return @distributed (+) for i in 1:min(3, adapters_left)
         if adapters[i] <= (start + 3)
