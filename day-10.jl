@@ -84,8 +84,8 @@ function count_solutions(adapters, start=0)
     return solutions_found
 end
 
-@assert count_solutions([sort(example1); 22]) == 8
-@assert count_solutions([sort(example2); 52]) == 19208
+@time @assert count_solutions([sort(example1); 22]) == 8
+@time @assert count_solutions([sort(example2); 52]) == 19208
 
 function parallel_count_solutions(adapters, start=0)
     adapters_left = length(adapters)
@@ -105,17 +105,17 @@ function parallel_count_solutions(adapters, start=0)
     end
 end
 
-@assert parallel_count_solutions([sort(example1); 22]) == 8
-@assert parallel_count_solutions([sort(example2); 52]) == 19208
+@time @assert parallel_count_solutions([sort(example1); 22]) == 8
+@time @assert parallel_count_solutions([sort(example2); 52]) == 19208
 
 function part2(numbers)
     sorted = sort(numbers)
-    return parallel_count_solutions([sorted; sorted[end] + 3])
+    return count_solutions([sorted; sorted[end] + 3])
 end
 
 test = read_array(read("data/day-10.txt", String))
 println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+# println("Part 2: $(part2(test))")
 
 @assert part1(test) == 2738
 # @assert part2(test) == 3340942
