@@ -135,8 +135,8 @@ function init_cache(adapters, step_size=0.05)
     cache = Cache()
 
     pos = n
-    while pos >= div(n, 3)
-        pos = pos - step
+    while pos >= n / 3
+        pos -= step
         count_solutions!(adapters[pos:end], cache)
     end
     return cache
@@ -149,6 +149,7 @@ function part2(numbers)
     return count_solutions!(full_sequence, cache)
 end
 
+
 @time @assert part2(example1) == 8
 @time @assert part2(example2) == 19208
 
@@ -157,4 +158,12 @@ println("Part 1: $(part1(test))")
 println("Part 2: $(part2(test))")
 
 @assert part1(test) == 2738
+@assert part2(test) == 74049191673856
+
+println()
+print("Example 1: ")
+@time @assert part2(example1) == 8
+print("Example 2: ")
+@time @assert part2(example2) == 19208
+print("Part 2: ")
 @time @assert part2(test) == 74049191673856
