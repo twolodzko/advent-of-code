@@ -129,9 +129,9 @@ end
 Traverse the tree starting from the back, to build the memoization
 cache.
 """
-function init_cache(adapters, step=0.05)
+function init_cache(adapters, step_size=0.05)
     n = length(adapters)
-    step = Int(max(1, round(n * step)))
+    step = Int(max(1, round(n * step_size)))
     cache = Cache()
 
     pos = n
@@ -157,4 +157,4 @@ println("Part 1: $(part1(test))")
 println("Part 2: $(part2(test))")
 
 @assert part1(test) == 2738
-@assert part2(test) == 74049191673856
+@time @assert part2(test) == 74049191673856
