@@ -17,25 +17,25 @@
 # policies.
 
 function getpattern(row)
-    i, j, char, password = match(r"^(\d+)\-(\d+) ([^:]+): (.*)$", row).captures
-    return parse(Int32, i), parse(Int32, j), char[1], password
+  i, j, char, password = match(r"^(\d+)\-(\d+) ([^:]+): (.*)$", row).captures
+  return parse(Int32, i), parse(Int32, j), char[1], password
 end
 
 function part1(inputs)
-    count = 0
-    for row in split(inputs, '\n')
-        if strip(row) == ""
-            continue
-        end
-
-        min, max, char, password = getpattern(row)
-
-        num_found = sum(collect(password) .== char)
-        if min <= num_found <= max
-            count += 1
-        end
+  count = 0
+  for row in split(inputs, '\n')
+    if strip(row) == ""
+      continue
     end
-    return count
+
+    min, max, char, password = getpattern(row)
+
+    num_found = sum(collect(password) .== char)
+    if min <= num_found <= max
+      count += 1
+    end
+  end
+  return count
 end
 
 example = "
@@ -61,19 +61,19 @@ example = "
 # How many passwords are valid according to the new interpretation of the policies?
 
 function part2(inputs)
-    count = 0
-    for row in split(inputs, '\n')
-        if strip(row) == ""
-            continue
-        end
-
-        i, j, char, password = getpattern(row)
-
-        if xor(password[i] == char, password[j] == char)
-            count += 1
-        end
+  count = 0
+  for row in split(inputs, '\n')
+    if strip(row) == ""
+      continue
     end
-    return count
+
+    i, j, char, password = getpattern(row)
+
+    if xor(password[i] == char, password[j] == char)
+      count += 1
+    end
+  end
+  return count
 end
 
 @assert part2(example) == 1

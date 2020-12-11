@@ -12,32 +12,32 @@
 # so on until you go past the bottom of the map.
 
 function replace_at(string, ind, char)
-    tmp = collect(string)
-    tmp[ind] = char
-    return String(tmp)
+  tmp = collect(string)
+  tmp[ind] = char
+  return String(tmp)
 end
 
-function part1(patch, right, down=1)
-    trees_count = 0
-    position = 1
-    time_to_move = 1
+function part1(patch, right, down = 1)
+  trees_count = 0
+  position = 1
+  time_to_move = 1
 
-    for row in split(patch, '\n')
-        if strip(row) == ""
-            continue
-        end
-
-        if time_to_move == 1
-            if row[position] == '#'
-                trees_count += 1
-            end
-            position = mod1(position + right, length(row))
-            time_to_move = down
-        else
-            time_to_move -= 1
-        end
+  for row in split(patch, '\n')
+    if strip(row) == ""
+      continue
     end
-    return trees_count
+
+    if time_to_move == 1
+      if row[position] == '#'
+        trees_count += 1
+      end
+      position = mod1(position + right, length(row))
+      time_to_move = down
+    else
+      time_to_move -= 1
+    end
+  end
+  return trees_count
 end
 
 example = "
@@ -70,11 +70,11 @@ example = "
 # multiplied together, these produce the answer 336.
 
 function part2(patch, right, down)
-    result = 1
-    for (r, d) in zip(right, down)
-        result *= part1(patch, r, d)
-    end
-    return result
+  result = 1
+  for (r, d) in zip(right, down)
+    result *= part1(patch, r, d)
+  end
+  return result
 end
 
 @assert part2(example, [1 3 5 7 1], [1 1 1 1 2]) == 336

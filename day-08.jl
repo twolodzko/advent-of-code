@@ -31,82 +31,78 @@ jmp -4
 acc +6
 "
 
-const commands = Dict(
-    "nop" => :nop,
-    "acc" => :acc,
-    "jmp" => :jmp,
-)
+const commands = Dict("nop" => :nop, "acc" => :acc, "jmp" => :jmp)
 
 struct Command
-    name::Symbol
-    value::Integer
+  name::Symbol
+  value::Integer
 
-    Command(name, value) = new(name, value)
+  Command(name, value) = new(name, value)
 
-    function Command(string::AbstractString)
-        name, value = split(strip(string), r"\s+")
-        new(commands[name], parse(Int, value))
-    end
+  function Command(string::AbstractString)
+    name, value = split(strip(string), r"\s+")
+    new(commands[name], parse(Int, value))
+  end
 end
 
 cmd(obj::Command) = obj.name
 val(obj::Command) = obj.value
 
 function parser(string::AbstractString)
-    program = Command[]
-    for row in split(string, '\n')
-        if row == ""
-            continue
-        end
-        push!(program, Command(row))
+  program = Command[]
+  for row in split(string, '\n')
+    if row == ""
+      continue
     end
-    return program
+    push!(program, Command(row))
+  end
+  return program
 end
 
-function run_code(program::Vector{Command}, max_loops=1000, verbose=false)
-    exec_count = zeros(Int, length(program))
-    status = false
-    accumulator = 0
-    offset = 1
+function run_code(program::Vector{Command}, max_loops = 1000, verbose = false)
+  exec_count = zeros(Int, length(program))
+  status = false
+  accumulator = 0
+  offset = 1
 
-    verbose && print("       <start>     =>  ")
-    while true
-        verbose && println("$(accumulator)")
+  verbose && print("       <start>     =>  ")
+  while true
+    verbose && println("$(accumulator)")
 
-        if offset == length(program) + 1
-            status = true
-            break
-        elseif offset > length(program)
-            verbose && println("<error>")
-            break
-        end
-        exec_count[offset] += 1
-        command = program[offset]
-        verbose && @printf("%3.0f (%d): %s %+4.0f  =>  ", offset, exec_count[offset], cmd(command), val(command))
-
-        if exec_count[offset] > max_loops
-            verbose && println("<break>")
-            break
-        end
-
-        if cmd(command) == :nop
-            offset += 1
-            continue
-        end
-
-        if cmd(command) == :acc
-            accumulator += val(command)
-            offset += 1
-        elseif cmd(command) == :jmp
-            offset += val(command)
-        else
-            verbose && println("<error>")
-            break
-        end
+    if offset == length(program) + 1
+      status = true
+      break
+    elseif offset > length(program)
+      verbose && println("<error>")
+      break
     end
-    verbose && println()
+    exec_count[offset] += 1
+    command = program[offset]
+    verbose && @printf("%3.0f (%d): %s %+4.0f  =>  ", offset, exec_count[offset], cmd(command), val(command))
 
-    return accumulator, status
+    if exec_count[offset] > max_loops
+      verbose && println("<break>")
+      break
+    end
+
+    if cmd(command) == :nop
+      offset += 1
+      continue
+    end
+
+    if cmd(command) == :acc
+      accumulator += val(command)
+      offset += 1
+    elseif cmd(command) == :jmp
+      offset += val(command)
+    else
+      verbose && println("<error>")
+      break
+    end
+  end
+  verbose && println()
+
+  return accumulator, status
 end
 
 @assert run_code(parser(example), 1) == (5, false)
@@ -126,42 +122,42 @@ acc -5
 # time, what value is in the accumulator?
 
 function part1(code)
-    program = parser(code)
-    accumulator, _ = run_code(program, 1)
-    return accumulator
+  program = parser(code)
+  accumulator, _ = run_code(program, 1)
+  return accumulator
 end
 
 # Fix the program so that it terminates normally by changing exactly one `jmp` (to `nop`)
 # or `nop` (to `jmp`). What is the value of the accumulator after the program terminates?
 
 function swap(command::Command)
-    if cmd(command) == :acc
-        error("invalid command: $(command)")
-    end
-    name = cmd(command) == :nop ? :jmp : :nop
-    return Command(name, val(command))
+  if cmd(command) == :acc
+    error("invalid command: $(command)")
+  end
+  name = cmd(command) == :nop ? :jmp : :nop
+  return Command(name, val(command))
 end
 
-function part2(code, verbose=false)
-    program_orig = parser(code)
-    command_names = reverse([cmd(command) for command in program_orig])
-    start_search = 1
-    success = false
-    accumulator = nothing
+function part2(code, verbose = false)
+  program_orig = parser(code)
+  command_names = reverse([cmd(command) for command in program_orig])
+  start_search = 1
+  success = false
+  accumulator = nothing
 
-    while !success
-        program = copy(program_orig)
-        idx = findfirst(x -> x in (:nop, :jmp), command_names[start_search:end])
-        idx += start_search - 1
-        # because we search starting from the back
-        program[end-idx+1] = swap(program_orig[end-idx+1])
-        accumulator, success = run_code(program, 2)
-        start_search = idx + 1
+  while !success
+    program = copy(program_orig)
+    idx = findfirst(x -> x in (:nop, :jmp), command_names[start_search:end])
+    idx += start_search - 1
+    # because we search starting from the back
+    program[end-idx+1] = swap(program_orig[end-idx+1])
+    accumulator, success = run_code(program, 2)
+    start_search = idx + 1
 
-        verbose && @printf("Progress: %.2f%%\n", idx / length(program) * 100)
-    end
+    verbose && @printf("Progress: %.2f%%\n", idx / length(program) * 100)
+  end
 
-    return accumulator
+  return accumulator
 end
 
 @assert part2(example) == 8

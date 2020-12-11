@@ -11,6 +11,7 @@
 #
 # Floor (.) never changes; seats don't move, and nobody sits on the floor.
 
+#! format: off
 example1 = String[
 "
 L.LL.LL.LL
@@ -85,50 +86,51 @@ L.#.L..#..
 #.#L#L#.##
 "
 ]
+#! format: on
 
 function decode_seat(char::Char)
-    if char == 'L'
-        return :Empty
-    elseif char == '.'
-        return :Floor
-    elseif char == '#'
-        return :Occupied
-    else
-        error("invalid input: $(char)")
-    end
+  if char == 'L'
+    return :Empty
+  elseif char == '.'
+    return :Floor
+  elseif char == '#'
+    return :Occupied
+  else
+    error("invalid input: $(char)")
+  end
 end
 
 function read_layout(string::AbstractString)
-    rows = map(strip, filter(x -> x != "", split(string, '\n')))
-    layout = Array{Symbol,2}(undef, length(rows), length(rows[1]))
+  rows = map(strip, filter(x -> x != "", split(string, '\n')))
+  layout = Array{Symbol,2}(undef, length(rows), length(rows[1]))
 
-    for (i, row) in enumerate(rows)
-        for (j, char) in enumerate(row)
-            layout[i, j] = decode_seat(char)
-        end
+  for (i, row) in enumerate(rows)
+    for (j, char) in enumerate(row)
+      layout[i, j] = decode_seat(char)
     end
-    return layout
+  end
+  return layout
 end
 
 @assert read_layout("L.#\n..L\n##.") == [:Empty :Floor :Occupied; :Floor :Floor :Empty; :Occupied :Occupied :Floor]
 
 function count_adjecent_occupied_seats(layout, x, y)
-    n, k = size(layout)
-    occupied_seats = 0
-    for i in (x - 1):(x + 1)
-        if i < 1 || i > n
-            continue
-        end
-        for j in (y - 1):(y + 1)
-            if i == x && j == y || j < 1 || j > k
-                continue
-            end
-            if layout[i, j] == :Occupied
-                occupied_seats += 1
-            end
-        end
+  n, k = size(layout)
+  occupied_seats = 0
+  for i = (x-1):(x+1)
+    if i < 1 || i > n
+      continue
     end
-    return occupied_seats
+    for j = (y-1):(y+1)
+      if i == x && j == y || j < 1 || j > k
+        continue
+      end
+      if layout[i, j] == :Occupied
+        occupied_seats += 1
+      end
+    end
+  end
+  return occupied_seats
 end
 
 @assert count_adjecent_occupied_seats(read_layout("...\n...\n..."), 2, 2) == 0
@@ -139,13 +141,13 @@ end
 @assert count_adjecent_occupied_seats(read_layout(".#.\n.##\n..."), 1, 3) == 3
 
 function new_state(layout, x, y)
-    occupied_seats = count_adjecent_occupied_seats(layout, x, y)
-    if layout[x, y] == :Empty && occupied_seats == 0
-        return :Occupied
-    elseif layout[x, y] == :Occupied && occupied_seats >= 4
-        return :Empty
-    end
-    return layout[x, y]
+  occupied_seats = count_adjecent_occupied_seats(layout, x, y)
+  if layout[x, y] == :Empty && occupied_seats == 0
+    return :Occupied
+  elseif layout[x, y] == :Occupied && occupied_seats >= 4
+    return :Empty
+  end
+  return layout[x, y]
 end
 
 @assert new_state(read_layout("...\n...\n..."), 2, 2) == :Floor
@@ -160,32 +162,32 @@ end
 @assert new_state(read_layout("##.\n##.\n..."), 1, 1) == :Occupied
 
 function apply_rules(layout)
-    n, k = size(layout)
-    updated = Array{Symbol,2}(undef, n, k)
-    for i in 1:n
-        for j in 1:k
-            updated[i, j] = new_state(layout, i, j)
-        end
+  n, k = size(layout)
+  updated = Array{Symbol,2}(undef, n, k)
+  for i = 1:n
+    for j = 1:k
+      updated[i, j] = new_state(layout, i, j)
     end
-    return updated
+  end
+  return updated
 end
 
 function layout_to_string(layout)
-    out = "\n"
-    n, k = size(layout)
-    for i in 1:n
-        for j in 1:k
-            if layout[i, j] == :Empty
-                out *= 'L'
-            elseif layout[i, j] == :Occupied
-                out *= '#'
-            else
-                out *= '.'
-            end
-        end
-        out *= '\n'
+  out = "\n"
+  n, k = size(layout)
+  for i = 1:n
+    for j = 1:k
+      if layout[i, j] == :Empty
+        out *= 'L'
+      elseif layout[i, j] == :Occupied
+        out *= '#'
+      else
+        out *= '.'
+      end
     end
-    return out
+    out *= '\n'
+  end
+  return out
 end
 
 @assert layout_to_string(read_layout(example1[1])) == example1[1]
@@ -202,15 +204,15 @@ end
 # How many seats end up occupied?
 
 function part1(string)
-    layout = read_layout(string)
-    while true
-        updated_layout = apply_rules(layout)
-        if layout == updated_layout
-            break
-        end
-        layout = updated_layout
+  layout = read_layout(string)
+  while true
+    updated_layout = apply_rules(layout)
+    if layout == updated_layout
+      break
     end
-    return sum(layout .== :Occupied)
+    layout = updated_layout
+  end
+  return sum(layout .== :Occupied)
 end
 
 @assert part1(example1[1]) == 37
@@ -221,6 +223,7 @@ end
 # occupied seats for an occupied seat to become empty (rather than four or more from the
 # previous rules). The other rules still apply (...)
 
+#! format: off
 example2 = [
 "
 L.LL.LL.LL
@@ -307,26 +310,27 @@ LLL###LLL#
 #.L#LL#.L#
 "
 ]
+#! format: on
 
 function first_visible_seat(layout, x, y, dx, dy)
-    n, k = size(layout)
-    while true
-        x += dx
-        y += dy
-        try
-            if layout[x, y] in (:Empty, :Occupied)
-                return layout[x, y]
-            end
-        catch BoundsError
-            # we bumped the wall
-            break
-        end
+  n, k = size(layout)
+  while true
+    x += dx
+    y += dy
+    try
+      if layout[x, y] in (:Empty, :Occupied)
+        return layout[x, y]
+      end
+    catch BoundsError
+      # we bumped the wall
+      break
     end
-    return :Floor
+  end
+  return :Floor
 end
 
 @assert first_visible_seat(read_layout("L..\n...\n..."), 1, 1, +1, 0) == :Floor
-@assert first_visible_seat(read_layout("L..\n...\n..."), 1, 1, 0, +1)== :Floor
+@assert first_visible_seat(read_layout("L..\n...\n..."), 1, 1, 0, +1) == :Floor
 @assert first_visible_seat(read_layout("L..\n...\n..."), 1, 1, +1, +1) == :Floor
 @assert first_visible_seat(read_layout("L#.\n...\n..."), 1, 1, 0, +1) == :Occupied
 @assert first_visible_seat(read_layout("LL#\n...\n..."), 1, 1, 0, +1) == :Empty
@@ -342,23 +346,24 @@ end
 @assert first_visible_seat(read_layout("#..\n...\n..L"), 3, 3, -1, -1) == :Occupied
 
 function count_first_visible_seats(layout, x, y)
-    n, k = size(layout)
-    occupied_seats = 0
+  n, k = size(layout)
+  occupied_seats = 0
 
-    for dx in (-1, 0, +1)
-        for dy in (-1, 0, +1)
-            dx == dy == 0 && continue
-            if first_visible_seat(layout, x, y, dx, dy) == :Occupied
-                occupied_seats += 1
-            end
-        end
+  for dx in (-1, 0, +1)
+    for dy in (-1, 0, +1)
+      dx == dy == 0 && continue
+      if first_visible_seat(layout, x, y, dx, dy) == :Occupied
+        occupied_seats += 1
+      end
     end
-    return occupied_seats
+  end
+  return occupied_seats
 end
 
 @assert count_first_visible_seats(read_layout("#.#..\n.....\n.#L..\n.....\n...#."), 3, 3) == 3
 @assert count_first_visible_seats(read_layout("L...#\n.....\n#....\n.#...\n....."), 1, 1) == 2
 
+#! format: off
 no_occupied_seats_example = "
 .##.##.
 #.#.#.#
@@ -368,29 +373,30 @@ no_occupied_seats_example = "
 #.#.#.#
 .##.##.
 "
+#! format: on
 
 @assert count_first_visible_seats(read_layout(no_occupied_seats_example), 4, 4) == 0
 @assert count_first_visible_seats(read_layout("#.##.##.##\n#######.##"), 1, 3) == 5
 
 function new_state_2(layout, x, y)
-    occupied_seats = count_first_visible_seats(layout, x, y)
-    if layout[x, y] == :Empty && occupied_seats == 0
-        return :Occupied
-    elseif layout[x, y] == :Occupied && occupied_seats >= 5
-        return :Empty
-    end
-    return layout[x, y]
+  occupied_seats = count_first_visible_seats(layout, x, y)
+  if layout[x, y] == :Empty && occupied_seats == 0
+    return :Occupied
+  elseif layout[x, y] == :Occupied && occupied_seats >= 5
+    return :Empty
+  end
+  return layout[x, y]
 end
 
 function apply_rules_2(layout)
-    n, k = size(layout)
-    updated = Array{Symbol,2}(undef, n, k)
-    for i in 1:n
-        for j in 1:k
-            updated[i, j] = new_state_2(layout, i, j)
-        end
+  n, k = size(layout)
+  updated = Array{Symbol,2}(undef, n, k)
+  for i = 1:n
+    for j = 1:k
+      updated[i, j] = new_state_2(layout, i, j)
     end
-    return updated
+  end
+  return updated
 end
 
 @assert apply_rules_2(read_layout(example2[1])) == read_layout(example2[2])
@@ -402,15 +408,15 @@ end
 @assert apply_rules_2(apply_rules_2(read_layout(example2[6]))) == apply_rules_2(read_layout(example2[6]))
 
 function part2(string)
-    layout = read_layout(string)
-    while true
-        updated_layout = apply_rules_2(layout)
-        if layout == updated_layout
-            break
-        end
-        layout = updated_layout
+  layout = read_layout(string)
+  while true
+    updated_layout = apply_rules_2(layout)
+    if layout == updated_layout
+      break
     end
-    return sum(layout .== :Occupied)
+    layout = updated_layout
+  end
+  return sum(layout .== :Occupied)
 end
 
 @assert part2(example2[1]) == 26

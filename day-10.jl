@@ -12,7 +12,7 @@
 # Treat the charging outlet near your seat as having an effective joltage rating of 0.
 
 function read_array(string::AbstractString)::Vector{Int}
-    return map(x -> parse(Int, x), filter(x -> x != "", split(string, '\n')))
+  return map(x -> parse(Int, x), filter(x -> x != "", split(string, '\n')))
 end
 
 example1 = read_array("
@@ -66,13 +66,13 @@ example2 = read_array("
 # What is the number of 1-jolt differences multiplied by the number of 3-jolt differences?
 
 function part1(numbers)
-    sorted = sort(numbers)
-    sorted = [0; sorted; sorted[end] + 3]
-    differences = diff(sorted)
-    @assert minimum(differences) == 1
-    @assert maximum(differences) == 3
+  sorted = sort(numbers)
+  sorted = [0; sorted; sorted[end] + 3]
+  differences = diff(sorted)
+  @assert minimum(differences) == 1
+  @assert maximum(differences) == 3
 
-    return sum(differences .== 1) * sum(differences .== 3)
+  return sum(differences .== 1) * sum(differences .== 3)
 end
 
 @assert part1(example2) == 220
@@ -84,20 +84,20 @@ end
 Traverse the tree using recurrsion directly.
 """
 function count_solutions(adapters)
-    solutions_found = 0
-    for i in 2:4
-        if i > length(adapters)
-            break
-        end
-        if adapters[i] <= (adapters[1] + 3)
-            if i == length(adapters)
-                solutions_found += 1
-            else
-                solutions_found += count_solutions(adapters[i:end])
-            end
-        end
+  solutions_found = 0
+  for i = 2:4
+    if i > length(adapters)
+      break
     end
-    return solutions_found
+    if adapters[i] <= (adapters[1] + 3)
+      if i == length(adapters)
+        solutions_found += 1
+      else
+        solutions_found += count_solutions(adapters[i:end])
+      end
+    end
+  end
+  return solutions_found
 end
 
 @time @assert count_solutions([0; sort(example1); 22]) == 8
@@ -106,7 +106,7 @@ end
 """
 Cache for holding the partial solution, it maps: node => solutions_count.
 """
-Cache = Dict{Int, Int}
+Cache = Dict{Int,Int}
 
 """
 Use memoized shortcuts when traversing the tree. On the way, update the cache
@@ -114,27 +114,27 @@ in place. Returns the number of paths from the beggining of the sorted list
 of nodes.
 """
 function count_solutions!(adapters, cache::Cache = Cache())
-    socket = adapters[1]
-    if socket in keys(cache)
-        return cache[socket]
-    end
+  socket = adapters[1]
+  if socket in keys(cache)
+    return cache[socket]
+  end
 
-    solutions_found = 0
-    for i in 2:4
-        if i > length(adapters)
-            break
-        end
-        if adapters[i] <= (socket + 3)
-            if i == length(adapters)
-                solutions_found += 1
-            else
-                # updates cache in place, will be available for next iteration
-                solutions_found += count_solutions!(adapters[i:end], cache)
-            end
-        end
+  solutions_found = 0
+  for i = 2:4
+    if i > length(adapters)
+      break
     end
-    cache[socket] = solutions_found
-    return solutions_found
+    if adapters[i] <= (socket + 3)
+      if i == length(adapters)
+        solutions_found += 1
+      else
+        # updates cache in place, will be available for next iteration
+        solutions_found += count_solutions!(adapters[i:end], cache)
+      end
+    end
+  end
+  cache[socket] = solutions_found
+  return solutions_found
 end
 
 @time @assert count_solutions!([0; sort(example1); 22], Cache()) == 8
@@ -144,24 +144,24 @@ end
 Traverse the tree starting from the back, to build the memoization
 cache.
 """
-function init_cache(adapters, step_size=0.05)
-    n = length(adapters)
-    step = Int(max(1, round(n * step_size)))
-    cache = Cache()
+function init_cache(adapters, step_size = 0.05)
+  n = length(adapters)
+  step = Int(max(1, round(n * step_size)))
+  cache = Cache()
 
-    pos = n
-    while pos >= n / 3
-        pos -= step
-        count_solutions!(adapters[pos:end], cache)
-    end
-    return cache
+  pos = n
+  while pos >= n / 3
+    pos -= step
+    count_solutions!(adapters[pos:end], cache)
+  end
+  return cache
 end
 
 function part2(numbers)
-    sorted = sort(numbers)
-    full_sequence = [0; sorted; sorted[end] + 3]
-    cache = init_cache(full_sequence)
-    return count_solutions!(full_sequence, cache)
+  sorted = sort(numbers)
+  full_sequence = [0; sorted; sorted[end] + 3]
+  cache = init_cache(full_sequence)
+  return count_solutions!(full_sequence, cache)
 end
 
 

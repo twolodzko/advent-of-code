@@ -17,79 +17,79 @@ iyr:2011 ecl:brn hgt:59in
 "
 
 struct Field
-    name::String
-    value::String
+  name::String
+  value::String
 
-    Field(string) = new(split(strip(string), ":")...)
+  Field(string) = new(split(strip(string), ":")...)
 end
 
 function extract_rows(input)
-    entries = [split(replace(row, r"\n" => " "), r"\s+") for row in split(input, "\n\n")]
-    return [[Field(field) for field in entry if field != ""] for entry in entries]
+  entries = [split(replace(row, r"\n" => " "), r"\s+") for row in split(input, "\n\n")]
+  return [[Field(field) for field in entry if field != ""] for entry in entries]
 end
 
 function part1(input)
-    expected = sort(["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"])
-    result = 0
-    for row in extract_rows(input)
-        fields = sort(map(x -> x.name, row))
+  expected = sort(["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"])
+  result = 0
+  for row in extract_rows(input)
+    fields = sort(map(x -> x.name, row))
 
-        if filter(x -> x != "cid", fields) == expected
-            result += 1
-        end
+    if filter(x -> x != "cid", fields) == expected
+      result += 1
     end
-    return result
+  end
+  return result
 end
 
 @assert part1(example1) == 2
 
 function isvalid(field::Field)
-    function isvalidhgt(x:: String)
-        m = match(r"(\d+)(cm|in)", x)
-        if m === nothing
-            return false
-        end
-
-        value, units = m.captures
-        value = parse(Int, value)
-
-        if units == "cm"
-            return 150 <= value <= 193
-        else
-            return 59 <= value <= 76
-        end
+  function isvalidhgt(x::String)
+    m = match(r"(\d+)(cm|in)", x)
+    if m === nothing
+      return false
     end
 
-    return Dict(
-        "byr" => x -> 1920 <= parse(Int, x) <= 2002,
-        "iyr" => x -> 2010 <= parse(Int, x) <= 2020,
-        "eyr" => x -> 2020 <= parse(Int, x) <= 2030,
-        "hgt" => isvalidhgt,
-        "hcl" => x -> match(r"^#[a-f0-9]{6}$", x) !== nothing,
-        "ecl" => x -> x in Set(["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]),
-        "pid" => x -> match(r"^[0-9]{9}$", x) !== nothing,
-        "cid" => x -> true,
-    )[field.name](field.value)
+    value, units = m.captures
+    value = parse(Int, value)
+
+    if units == "cm"
+      return 150 <= value <= 193
+    else
+      return 59 <= value <= 76
+    end
+  end
+
+  return Dict(
+    "byr" => x -> 1920 <= parse(Int, x) <= 2002,
+    "iyr" => x -> 2010 <= parse(Int, x) <= 2020,
+    "eyr" => x -> 2020 <= parse(Int, x) <= 2030,
+    "hgt" => isvalidhgt,
+    "hcl" => x -> match(r"^#[a-f0-9]{6}$", x) !== nothing,
+    "ecl" => x -> x in Set(["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]),
+    "pid" => x -> match(r"^[0-9]{9}$", x) !== nothing,
+    "cid" => x -> true,
+  )[field.name](field.value)
 end
 
 function part2(input)
-    expected = sort(["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"])
-    result = 0
-    for row in extract_rows(input)
-        fields = sort(map(x -> x.name, row))
+  expected = sort(["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"])
+  result = 0
+  for row in extract_rows(input)
+    fields = sort(map(x -> x.name, row))
 
-        if filter(x -> x != "cid", fields) != expected
-            continue
-        end
-
-        ok = true
-        for field in row
-            ok = ok && isvalid(field)
-        end
-
-        result += ok
+    if filter(x -> x != "cid", fields) != expected
+      continue
     end
-    return result
+
+    ok = true
+    for field in row
+      ok = ok && isvalid(field)
+    end
+
+    result += ok
+  end
+  return result
 end
 
 example2 = "
