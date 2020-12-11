@@ -1,8 +1,6 @@
 
 # https://adventofcode.com/2020/day/10
 
-using Distributed
-
 function read_array(string::AbstractString)::Vector{Int}
     return map(x -> parse(Int, x), filter(x -> x != "", split(string, '\n')))
 end
@@ -67,6 +65,9 @@ end
 
 @assert part1(example2) == 220
 
+"""
+Traverse the tree using recurrsion directly.
+"""
 function count_solutions(adapters)
     solutions_found = 0
     for i in 2:4
@@ -87,70 +88,65 @@ end
 @time @assert count_solutions([0; sort(example1); 22]) == 8
 @time @assert count_solutions([0; sort(example2); 52]) == 19208
 
-function parallel_count_solutions(adapters)
-    adapters_left = length(adapters)
-    if adapters_left == 0
-        return 0
-    end
-    return @distributed (+) for i in 2:min(4, adapters_left)
-        if adapters[i] <= (adapters[1] + 3)
-            if i == adapters_left
-                1
-            else
-                parallel_count_solutions(adapters[i:end])
-            end
-        else
-            0
-        end
-    end
-end
+"""
+Cache for holding the partial solution, it maps: node => solutions_count.
+"""
+Cache = Dict{Int, Int}
 
-@time @assert parallel_count_solutions([0; sort(example1); 22]) == 8
-@time @assert parallel_count_solutions([0; sort(example2); 52]) == 19208
+"""
+Use memoized shortcuts when traversing the tree. On the way, update the cache
+in place. Returns the number of paths from the beggining of the sorted list
+of nodes.
+"""
+function count_solutions!(adapters, cache::Cache = Cache())
+    socket = adapters[1]
+    if socket in keys(cache)
+        return cache[socket]
+    end
 
-function count_solutions(adapters, cache::Dict{Int, Int} = Dict{Int, Int}())
     solutions_found = 0
     for i in 2:4
         if i > length(adapters)
             break
         end
-        println("+$(i) => $(adapters[i]) \t $(cache)")
-        if adapters[i] in keys(cache)
-            solutions_found += cache[adapters[i]]
-        elseif adapters[i] <= (adapters[1] + 3)
+        if adapters[i] <= (socket + 3)
             if i == length(adapters)
                 solutions_found += 1
             else
-                partial_count = count_solutions(adapters[i:end], cache)
-                cache[adapters[i]] = partial_count
-                solutions_found += partial_count
+                # updates cache in place, will be available for next iteration
+                solutions_found += count_solutions!(adapters[i:end], cache)
             end
         end
     end
+    cache[socket] = solutions_found
     return solutions_found
 end
 
-@time @assert count_solutions([0; sort(example1); 22], Dict{Int, Int}()) == 8
-@time @assert count_solutions([0; sort(example2); 52], Dict{Int, Int}()) == 19208
+@time @assert count_solutions!([0; sort(example1); 22], Cache()) == 8
+@time @assert count_solutions!([0; sort(example2); 52], Cache()) == 19208
 
-function init_cache(adapters)
+"""
+Traverse the tree starting from the back, to build the memoization
+cache.
+"""
+function init_cache(adapters, step=0.05)
     n = length(adapters)
-    cache = Dict{Int, Int}()
-    for i in 20:-2:2
-        pos = n - div(n, i)
-        if pos == n
-            continue
-        end
-        count_solutions(adapters[pos:end], cache)
+    step = Int(max(1, round(n * step)))
+    cache = Cache()
+
+    pos = n
+    while pos >= div(n, 3)
+        pos = pos - step
+        count_solutions!(adapters[pos:end], cache)
     end
     return cache
 end
 
 function part2(numbers)
     sorted = sort(numbers)
-    sorted = [0; sorted; sorted[end] + 3]
-    cache = init_cache(sorted)
-    return count_solutions(sorted, cache)
+    full_sequence = [0; sorted; sorted[end] + 3]
+    cache = init_cache(full_sequence)
+    return count_solutions!(full_sequence, cache)
 end
 
 @time @assert part2(example1) == 8
@@ -158,7 +154,7 @@ end
 
 test = read_array(read("data/day-10.txt", String))
 println("Part 1: $(part1(test))")
-# println("Part 2: $(part2(test))")
+println("Part 2: $(part2(test))")
 
 @assert part1(test) == 2738
-# @assert part2(test) == 3340942
+@assert part2(test) == 74049191673856
