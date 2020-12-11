@@ -11,14 +11,8 @@ function part1(list_of_numbers, total=2020)
     end
 end
 
-lst = [1721
-       979
-       366
-       299
-       675
-       1456]
-
-@assert part1(lst) == 514579
+example = [1721, 979, 366, 299, 675, 1456]
+@assert part1(example) == 514579
 
 # Using the above example again, the three entries that sum to 2020 are
 # 979, 366, and 675. Multiplying them together produces the answer, 241861950.
@@ -34,7 +28,7 @@ function part2(list_of_numbers)
     end
 end
 
-@assert part2(lst) == 241861950
+@assert part2(example) == 241861950
 
 function read_array(string::AbstractString)::Vector{Int}
     return map(x -> parse(Int, x), filter(x -> x != "", split(string, '\n')))

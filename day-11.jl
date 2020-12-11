@@ -1,6 +1,16 @@
 
 # https://adventofcode.com/2020/day/11
 
+# The following rules are applied to every seat simultaneously:
+#
+#   * If a seat is empty (L) and there are no occupied seats adjacent to it, the seat
+#     becomes occupied.
+#   * If a seat is occupied (#) and four or more seats adjacent to it are also occupied,
+#     the seat becomes empty.
+#   * Otherwise, the seat's state does not change.
+#
+# Floor (.) never changes; seats don't move, and nobody sits on the floor.
+
 example1 = String[
 "
 L.LL.LL.LL
@@ -189,6 +199,8 @@ end
 # Equilibrium?!
 @assert apply_rules(read_layout(example1[6])) == read_layout(example1[6])
 
+# How many seats end up occupied?
+
 function part1(string)
     layout = read_layout(string)
     while true
@@ -202,6 +214,12 @@ function part1(string)
 end
 
 @assert part1(example1[1]) == 37
+
+# Now, instead of considering just the eight immediately adjacent seats, consider the first
+# seat in each of those eight directions. (...)
+# Also, people seem to be more tolerant than you expected: it now takes five or more visible
+# occupied seats for an occupied seat to become empty (rather than four or more from the
+# previous rules). The other rules still apply (...)
 
 example2 = [
 "

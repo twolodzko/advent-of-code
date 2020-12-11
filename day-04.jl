@@ -1,6 +1,6 @@
 # https://adventofcode.com/2020/day/4
 
-inputs = "
+example1 = "
 ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
 byr:1937 iyr:2017 cid:147 hgt:183cm
 
@@ -41,8 +41,7 @@ function part1(input)
     return result
 end
 
-@assert part1(inputs) == 2
-
+@assert part1(example1) == 2
 
 function isvalid(field::Field)
     function isvalidhgt(x:: String)
@@ -73,7 +72,6 @@ function isvalid(field::Field)
     )[field.name](field.value)
 end
 
-
 function part2(input)
     expected = sort(["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"])
     result = 0
@@ -94,8 +92,7 @@ function part2(input)
     return result
 end
 
-
-inputs = "
+example2 = "
 eyr:1972 cid:100
 hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926
 
@@ -124,7 +121,7 @@ eyr:2022
 iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719
 "
 
-@assert part2(inputs) == 4
+@assert part2(example2) == 4
 
 test = read("data/day-04.txt", String)
 println("Part 1: $(part1(test))")

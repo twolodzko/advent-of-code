@@ -30,7 +30,6 @@ function part1(inputs)
 
         min, max, char, password = getpattern(row)
 
-        # num_found = length([x for x in eachmatch(Regex(char), password)])
         num_found = sum(collect(password) .== char)
         if min <= num_found <= max
             count += 1
@@ -39,14 +38,13 @@ function part1(inputs)
     return count
 end
 
-
-str = "
+example = "
 1-3 a: abcde
 1-3 b: cdefg
 2-9 c: ccccccccc
 "
 
-@assert part1(str) == 2
+@assert part1(example) == 2
 
 # Each policy actually describes two positions in the password, where 1 means the first
 # character, 2 means the second character, and so on. (Be careful; Toboggan Corporate
@@ -78,14 +76,7 @@ function part2(inputs)
     return count
 end
 
-
-str = "
-1-3 a: abcde
-1-3 b: cdefg
-2-9 c: ccccccccc
-"
-
-@assert part2(str) == 1
+@assert part2(example) == 1
 
 test = read("data/day-02.txt", String)
 println("Part 1: $(part1(test))")

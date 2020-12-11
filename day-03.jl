@@ -18,7 +18,6 @@ function replace_at(string, ind, char)
 end
 
 function part1(patch, right, down=1)
-    # println("Right $(right), down $(down)\n")
     trees_count = 0
     position = 1
     time_to_move = 1
@@ -34,19 +33,14 @@ function part1(patch, right, down=1)
             end
             position = mod1(position + right, length(row))
             time_to_move = down
-            # println(replace_at(row, position, 'X'))
         else
             time_to_move -= 1
-            # println(row)
         end
     end
-    # println()
-
     return trees_count
 end
 
-
-patch = "
+example = "
 ..##.......
 #...#...#..
 .#....#..#.
@@ -60,19 +54,18 @@ patch = "
 .#..#...#.#
 "
 
-@assert part1(patch, 3) == 7
-
+@assert part1(example, 3) == 7
 
 # Determine the number of trees you would encounter if, for each of the following
 #     slopes, you start at the top-left corner and traverse the map all the way
 #     to the bottom:
-
+#
 #     Right 1, down 1.
 #     Right 3, down 1. (This is the slope you already checked.)
 #     Right 5, down 1.
 #     Right 7, down 1.
 #     Right 1, down 2.
-
+#
 # In the above example, these slopes would find 2, 7, 3, 4, and 2 tree(s) respectively;
 # multiplied together, these produce the answer 336.
 
@@ -84,7 +77,7 @@ function part2(patch, right, down)
     return result
 end
 
-@assert part2(patch, [1 3 5 7 1], [1 1 1 1 2]) == 336
+@assert part2(example, [1 3 5 7 1], [1 1 1 1 2]) == 336
 
 test = read("data/day-03.txt", String)
 println("Part 1: $(part1(test, 3))")
