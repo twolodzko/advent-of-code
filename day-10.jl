@@ -67,37 +67,37 @@ end
 
 @assert part1(example2) == 220
 
-function count_solutions(adapters, start=0)
+function count_solutions(adapters)
     solutions_found = 0
-    for i in 1:3
+    for i in 2:4
         if i > length(adapters)
             break
         end
-        if adapters[i] <= (start + 3)
+        if adapters[i] <= (adapters[1] + 3)
             if i == length(adapters)
                 solutions_found += 1
             else
-                solutions_found += count_solutions(adapters[(i + 1):end], adapters[i])
+                solutions_found += count_solutions(adapters[i:end])
             end
         end
     end
     return solutions_found
 end
 
-@time @assert count_solutions([sort(example1); 22]) == 8
-@time @assert count_solutions([sort(example2); 52]) == 19208
+@time @assert count_solutions([0; sort(example1); 22]) == 8
+@time @assert count_solutions([0; sort(example2); 52]) == 19208
 
-function parallel_count_solutions(adapters, start=0)
+function parallel_count_solutions(adapters)
     adapters_left = length(adapters)
     if adapters_left == 0
         return 0
     end
-    return @distributed (+) for i in 1:min(3, adapters_left)
-        if adapters[i] <= (start + 3)
+    return @distributed (+) for i in 2:min(4, adapters_left)
+        if adapters[i] <= (adapters[1] + 3)
             if i == adapters_left
                 1
             else
-                parallel_count_solutions(adapters[(i + 1):end], adapters[i])
+                parallel_count_solutions(adapters[i:end])
             end
         else
             0
@@ -105,13 +105,56 @@ function parallel_count_solutions(adapters, start=0)
     end
 end
 
-@time @assert parallel_count_solutions([sort(example1); 22]) == 8
-@time @assert parallel_count_solutions([sort(example2); 52]) == 19208
+@time @assert parallel_count_solutions([0; sort(example1); 22]) == 8
+@time @assert parallel_count_solutions([0; sort(example2); 52]) == 19208
+
+function count_solutions(adapters, cache::Dict{Int, Int} = Dict{Int, Int}())
+    solutions_found = 0
+    for i in 2:4
+        if i > length(adapters)
+            break
+        end
+        println("+$(i) => $(adapters[i]) \t $(cache)")
+        if adapters[i] in keys(cache)
+            solutions_found += cache[adapters[i]]
+        elseif adapters[i] <= (adapters[1] + 3)
+            if i == length(adapters)
+                solutions_found += 1
+            else
+                partial_count = count_solutions(adapters[i:end], cache)
+                cache[adapters[i]] = partial_count
+                solutions_found += partial_count
+            end
+        end
+    end
+    return solutions_found
+end
+
+@time @assert count_solutions([0; sort(example1); 22], Dict{Int, Int}()) == 8
+@time @assert count_solutions([0; sort(example2); 52], Dict{Int, Int}()) == 19208
+
+function init_cache(adapters)
+    n = length(adapters)
+    cache = Dict{Int, Int}()
+    for i in 20:-2:2
+        pos = n - div(n, i)
+        if pos == n
+            continue
+        end
+        count_solutions(adapters[pos:end], cache)
+    end
+    return cache
+end
 
 function part2(numbers)
     sorted = sort(numbers)
-    return count_solutions([sorted; sorted[end] + 3])
+    sorted = [0; sorted; sorted[end] + 3]
+    cache = init_cache(sorted)
+    return count_solutions(sorted, cache)
 end
+
+@time @assert part2(example1) == 8
+@time @assert part2(example2) == 19208
 
 test = read_array(read("data/day-10.txt", String))
 println("Part 1: $(part1(test))")
