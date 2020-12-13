@@ -85,7 +85,7 @@ function sum_until(numbers, target)
 end
 
 @assert sum_until(1:10, 10) == [1:4;]
-@assert sum_until(1:10, 100) === nothing
+@assert isnothing(sum_until(1:10, 100))
 
 function find_weak_sequence(numbers; preamble_size = 25)
   number, pos = find_first_invalid(numbers, preamble_size = preamble_size)
@@ -94,7 +94,7 @@ function find_weak_sequence(numbers; preamble_size = 25)
       break
     end
     weak_sequence = sum_until(numbers[i:(pos-1)], number)
-    if weak_sequence !== nothing
+    if !isnothing(weak_sequence)
       return weak_sequence
     end
   end

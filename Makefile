@@ -1,4 +1,6 @@
 
+JULIA = julia --project=. 
+
 .PHONY: all
 all: format test
 
@@ -6,14 +8,18 @@ all: format test
 test:
 	@ for f in day-*.jl; do\
 		printf "\n$$f:\n";\
-		julia $$f;\
+		$(JULIA) $$f;\
 	done
 
 .PHONY: format
 format: fmt.so
-	@ julia --sysimage fmt.so fmt.jl
+	@ $(JULIA) --sysimage fmt.so fmt.jl
 
 fmt.so:
-	@ julia -e "using PackageCompiler; \
+	@ $(JULIA) -e "using PackageCompiler; \
 		create_sysimage(:JuliaFormatter, sysimage_path = \"fmt.so\", \
 			precompile_execution_file = \"fmt.jl\", replace_default = false)"
+
+.PHONY: repl
+repl:
+	$(JULIA)

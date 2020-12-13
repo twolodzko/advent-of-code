@@ -21,7 +21,7 @@ struct Bag
 
   function Bag(string::AbstractString)
     m = match(r"(\d*?) ?([a-z ]+?) (?:bag|bags)", string)
-    if m === nothing
+    if isnothing(m)
       error("invalid bag description")
     end
     quantity, kind = m.captures
@@ -37,7 +37,7 @@ function rule_parser(rule)
   bag, contains = split(rule, " contain ", limit = 2)
   bag = Bag(bag)
   contains = [Bag(elem) for elem in split(contains, ',')]
-  return bag, filter(x -> x !== nothing, contains)
+  return bag, filter(x -> !isnothing(x), contains)
 end
 
 function rules_to_revdict(input)
@@ -51,7 +51,7 @@ function rules_to_revdict(input)
     bag, contains = rule_parser(row)
 
     for elem in contains
-      if elem === nothing
+      if isnothing(elem)
         continue
       end
 

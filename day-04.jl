@@ -46,7 +46,7 @@ end
 function isvalid(field::Field)
   function isvalidhgt(x::String)
     m = match(r"(\d+)(cm|in)", x)
-    if m === nothing
+    if isnothing(m)
       return false
     end
 
@@ -65,9 +65,9 @@ function isvalid(field::Field)
     "iyr" => x -> 2010 <= parse(Int, x) <= 2020,
     "eyr" => x -> 2020 <= parse(Int, x) <= 2030,
     "hgt" => isvalidhgt,
-    "hcl" => x -> match(r"^#[a-f0-9]{6}$", x) !== nothing,
+    "hcl" => x -> !isnothing(match(r"^#[a-f0-9]{6}$", x)),
     "ecl" => x -> x in Set(["amb", "blu", "brn", "gry", "grn", "hzl", "oth"]),
-    "pid" => x -> match(r"^[0-9]{9}$", x) !== nothing,
+    "pid" => x -> !isnothing(match(r"^[0-9]{9}$", x)),
     "cid" => x -> true,
   )[field.name](field.value)
 end

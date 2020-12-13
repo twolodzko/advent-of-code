@@ -22,7 +22,7 @@ function part2(list_of_numbers)
     partial = 2020 - x
     tmp = filter(y -> y <= partial, list_of_numbers[i+1:end])
     y = part1(tmp, partial)
-    if y !== nothing
+    if !isnothing(y)
       return x * y
     end
   end

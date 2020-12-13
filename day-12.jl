@@ -56,7 +56,7 @@ function part1(string::AbstractString; verbose = false)
       continue
     end
     m = match(r"([NSEWLRF])(\d+)", row)
-    if m === nothing
+    if isnothing(m)
       error("invalid input")
     end
     action, value = m.captures
@@ -109,7 +109,7 @@ function part2(string::AbstractString; verbose = false)
       continue
     end
     m = match(r"([NSEWLRF])(\d+)", row)
-    if m === nothing
+    if isnothing(m)
       error("invalid input")
     end
     action, value = m.captures
