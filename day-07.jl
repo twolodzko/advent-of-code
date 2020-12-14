@@ -14,115 +14,115 @@ dotted black bags contain no other bags.
 "
 
 struct Bag
-    kind::AbstractString
-    quantity::Integer
+  kind::AbstractString
+  quantity::Integer
 
-    Bag(kind, quantity) = new(kind, quantity)
+  Bag(kind, quantity) = new(kind, quantity)
 
-    function Bag(string::AbstractString)
-        m = match(r"(\d*?) ?([a-z ]+?) (?:bag|bags)", string)
-        if m === nothing
-            error("invalid bag description")
-        end
-        quantity, kind = m.captures
-
-        if kind == "no other"
-            return nothing
-        end
-        return new(String(kind), quantity == "" ? 1 : parse(Int, quantity))
+  function Bag(string::AbstractString)
+    m = match(r"(\d*?) ?([a-z ]+?) (?:bag|bags)", string)
+    if isnothing(m)
+      error("invalid bag description")
     end
+    quantity, kind = m.captures
+
+    if kind == "no other"
+      return nothing
+    end
+    return new(String(kind), quantity == "" ? 1 : parse(Int, quantity))
+  end
 end
 
 function rule_parser(rule)
-    bag, contains = split(rule, " contain ", limit=2)
-    bag = Bag(bag)
-    contains = [Bag(elem) for elem in split(contains, ',')]
-    return bag, filter(x -> x !== nothing, contains)
+  bag, contains = split(rule, " contain ", limit = 2)
+  bag = Bag(bag)
+  contains = [Bag(elem) for elem in split(contains, ',')]
+  return bag, filter(x -> !isnothing(x), contains)
 end
 
 function rules_to_revdict(input)
-    bags = Dict()
+  bags = Dict()
 
-    for row in split(input, '\n')
-        if row == ""
-            continue
-        end
-
-        bag, contains = rule_parser(row)
-
-        for elem in contains
-            if elem === nothing
-                continue
-            end
-
-            if elem.kind in keys(bags)
-                push!(bags[elem.kind], bag.kind)
-            else
-                bags[elem.kind] = [bag.kind]
-            end
-        end
+  for row in split(input, '\n')
+    if row == ""
+      continue
     end
 
-    return bags
+    bag, contains = rule_parser(row)
+
+    for elem in contains
+      if isnothing(elem)
+        continue
+      end
+
+      if elem.kind in keys(bags)
+        push!(bags[elem.kind], bag.kind)
+      else
+        bags[elem.kind] = [bag.kind]
+      end
+    end
+  end
+
+  return bags
 end
 
 @assert rules_to_revdict(example1)["shiny gold"] == ["bright white", "muted yellow"]
 
-function search_for_possible_bag_colors(bags, target="shiny gold")
-    possible_colors = Set()
-    to_search = [target]
+function search_for_possible_bag_colors(bags, target = "shiny gold")
+  possible_colors = Set()
+  to_search = [target]
 
-    while !isempty(to_search)
-        found = []
-        for elem in to_search
-            try
-                # we already have those on the list, ignore in case there are cycles
-                for x in bags[elem]
-                    push!(found, x)
-                    push!(possible_colors, x)
-                end
-            catch KeyError
-            end
-
+  while !isempty(to_search)
+    found = []
+    for elem in to_search
+      try
+        # we already have those on the list, ignore in case there are cycles
+        for x in bags[elem]
+          push!(found, x)
+          push!(possible_colors, x)
         end
-        to_search = found
+      catch KeyError
+      end
+
     end
-    return possible_colors
+    to_search = found
+  end
+  return possible_colors
 end
 
 function part1(input)
-    bags = rules_to_revdict(input)
-    possible_colors = search_for_possible_bag_colors(bags)
-    return length(possible_colors)
+  bags = rules_to_revdict(input)
+  possible_colors = search_for_possible_bag_colors(bags)
+  return length(possible_colors)
 end
 
 @assert part1(example1) == 4
 
 
 function rules_to_dict(input)
-    rules = Dict{String, Array{Bag}}()
-    for row in split(input, '\n')
-        if row == ""
-            continue
-        end
-        bag, contains = rule_parser(row)
-        rules[bag.kind] = contains
+  rules = Dict{String,Array{Bag}}()
+  for row in split(input, '\n')
+    if row == ""
+      continue
     end
-    return rules
+    bag, contains = rule_parser(row)
+    rules[bag.kind] = contains
+  end
+  return rules
 end
 
 @assert rules_to_dict(example1)["shiny gold"] == Bag[Bag("dark olive", 1), Bag("vibrant plum", 2)]
 
 function count_bags(rules, bag)
-    if isempty(rules[bag.kind])
-        return bag.quantity
-    else
-        n = 0
-        for elem in rules[bag.kind]
-            n += count_bags(rules, elem)
-        end
-        return bag.quantity + bag.quantity * n
+  if isempty(rules[bag.kind])
+    return bag.quantity
+  else
+    n = 0
+    for elem in rules[bag.kind]
+      n += count_bags(rules, elem)
     end
+    return bag.quantity + bag.quantity * n
+  end
 end
 
 @assert count_bags(rules_to_dict(example1), Bag("faded blue", 1)) == 1
@@ -131,8 +131,8 @@ end
 @assert count_bags(rules_to_dict(example1), Bag("vibrant plum", 2)) == 24
 
 function part2(input)
-    rules = rules_to_dict(input)
-    return count_bags(rules, Bag("shiny gold", 1)) - 1
+  rules = rules_to_dict(input)
+  return count_bags(rules, Bag("shiny gold", 1)) - 1
 end
 
 example2 = "
