@@ -43,11 +43,7 @@ end
 function rules_to_revdict(input)
   bags = Dict()
 
-  for row in split(input, '\n')
-    if row == ""
-      continue
-    end
-
+  for row in split(input, '\n', keepempty = false)
     bag, contains = rule_parser(row)
 
     for elem in contains
@@ -101,10 +97,7 @@ end
 
 function rules_to_dict(input)
   rules = Dict{String,Array{Bag}}()
-  for row in split(input, '\n')
-    if row == ""
-      continue
-    end
+  for row in split(input, '\n', keepempty = false)
     bag, contains = rule_parser(row)
     rules[bag.kind] = contains
   end

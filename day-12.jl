@@ -50,11 +50,8 @@ end
 function part1(string::AbstractString; verbose = false)
   ship = Ship(:East, (0, 0), (0, 0))
 
-  for row in split(string, '\n')
+  for row in split(string, '\n', keepempty = false)
     row = strip(row)
-    if row == ""
-      continue
-    end
     m = match(r"([NSEWLRF])(\d+)", row)
     if isnothing(m)
       error("invalid input")
@@ -103,11 +100,8 @@ end
 function part2(string::AbstractString; verbose = false)
   ship = Ship(:East, (0, 0), (1, 10))
 
-  for row in split(string, '\n')
+  for row in split(string, '\n', keepempty = false)
     row = strip(row)
-    if row == ""
-      continue
-    end
     m = match(r"([NSEWLRF])(\d+)", row)
     if isnothing(m)
       error("invalid input")

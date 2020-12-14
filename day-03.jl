@@ -22,11 +22,7 @@ function part1(patch, right, down = 1)
   position = 1
   time_to_move = 1
 
-  for row in split(patch, '\n')
-    if strip(row) == ""
-      continue
-    end
-
+  for row in split(patch, '\n', keepempty = false)
     if time_to_move == 1
       if row[position] == '#'
         trees_count += 1

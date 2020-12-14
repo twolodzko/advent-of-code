@@ -50,10 +50,7 @@ val(obj::Command) = obj.value
 
 function parser(string::AbstractString)
   program = Command[]
-  for row in split(string, '\n')
-    if row == ""
-      continue
-    end
+  for row in split(string, '\n', keepempty = false)
     push!(program, Command(row))
   end
   return program

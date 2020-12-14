@@ -31,7 +31,7 @@ end
 @assert part2(example) == 241861950
 
 function read_array(string::AbstractString)::Vector{Int}
-  return map(x -> parse(Int, x), filter(x -> x != "", split(string, '\n')))
+  return map(x -> parse(Int, x), split(string, '\n', keepempty = false))
 end
 
 test = read_array(read("data/day-01.txt", String))

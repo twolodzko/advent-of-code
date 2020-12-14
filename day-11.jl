@@ -101,7 +101,7 @@ function decode_seat(char::Char)
 end
 
 function read_layout(string::AbstractString)
-  rows = map(strip, filter(x -> x != "", split(string, '\n')))
+  rows = map(strip, split(string, '\n', keepempty = false))
   layout = Array{Symbol,2}(undef, length(rows), length(rows[1]))
 
   for (i, row) in enumerate(rows)

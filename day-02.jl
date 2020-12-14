@@ -23,11 +23,7 @@ end
 
 function part1(inputs)
   count = 0
-  for row in split(inputs, '\n')
-    if strip(row) == ""
-      continue
-    end
-
+  for row in split(inputs, '\n', keepempty = false)
     min, max, char, password = getpattern(row)
 
     num_found = sum(collect(password) .== char)
@@ -62,11 +58,7 @@ example = "
 
 function part2(inputs)
   count = 0
-  for row in split(inputs, '\n')
-    if strip(row) == ""
-      continue
-    end
-
+  for row in split(inputs, '\n', keepempty = false)
     i, j, char, password = getpattern(row)
 
     if xor(password[i] == char, password[j] == char)

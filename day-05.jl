@@ -36,10 +36,7 @@ end
 
 function part1(codes)
   highest = 0
-  for code in split(codes, '\n')
-    if code == ""
-      continue
-    end
+  for code in split(codes, '\n', keepempty = false)
     highest = max(highest, code_to_int(code))
   end
   return highest
@@ -61,7 +58,7 @@ end
 @assert find_missing([1, 2, 3, 4, 6, 7, 8]) == 4
 
 function part2(codes)
-  seat_numbers = sort([code_to_int(code) for code in split(codes, '\n') if code != ""])
+  seat_numbers = sort([code_to_int(code) for code in split(codes, '\n', keepempty = false)])
   idx = find_missing(seat_numbers)
   return seat_numbers[idx] + 1
 end

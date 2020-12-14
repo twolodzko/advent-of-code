@@ -6,7 +6,7 @@ example = "
 "
 
 function read_input(string)
-  earliest_timestamp, bus_numbers = filter(x -> x != "", split(string, '\n'))
+  earliest_timestamp, bus_numbers = split(string, '\n', keepempty = false)
   earliest_timestamp = parse(Int, earliest_timestamp)
   bus_numbers = map(x -> tryparse(Int, x), split(bus_numbers, ','))
   return earliest_timestamp, bus_numbers
