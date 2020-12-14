@@ -158,51 +158,51 @@ function init_cache(adapters, step_size = 0.05)
 end
 
 function possible_moves(numbers)
-    moves = []
-    for i in 1:(length(numbers) - 1)
-        next_move = Int[]
-        for j in 1:3
-            if (i + j) > length(numbers)
-                break
-            end
-            if numbers[i+j] <= (numbers[i] + 3)
-                push!(next_move, i+j)
-            end
-        end
-        push!(moves, next_move)
+  moves = []
+  for i = 1:(length(numbers)-1)
+    next_move = Int[]
+    for j = 1:3
+      if (i + j) > length(numbers)
+        break
+      end
+      if numbers[i+j] <= (numbers[i] + 3)
+        push!(next_move, i + j)
+      end
     end
-    return moves
+    push!(moves, next_move)
+  end
+  return moves
 end
 
-function traverse(moves, pos=1)
-    if pos == length(moves)
-        return 1
-    end
-    moves_count = 0
-    for move in moves[pos]
-        moves_count += traverse(moves, move)
-    end
-    return moves_count
+function traverse(moves, pos = 1)
+  if pos == length(moves)
+    return 1
+  end
+  moves_count = 0
+  for move in moves[pos]
+    moves_count += traverse(moves, move)
+  end
+  return moves_count
 end
 
 @time @assert traverse(possible_moves([0; sort(example1); 22])) == 8
 @time @assert traverse(possible_moves([0; sort(example2); 52])) == 19208
 
 function reverse_paths(numbers)
-    possible_paths = []
-    for i in length(numbers):-1:2
-        paths = Int[]
-        for j in 1:3
-            if (i - j) <= 0
-                break
-            end
-            if numbers[i] <= (numbers[i-j] + 3)
-                push!(paths, numbers[i-j])
-            end
-        end
-        push!(possible_paths, reverse(paths))
+  possible_paths = []
+  for i = length(numbers):-1:2
+    paths = Int[]
+    for j = 1:3
+      if (i - j) <= 0
+        break
+      end
+      if numbers[i] <= (numbers[i-j] + 3)
+        push!(paths, numbers[i-j])
+      end
     end
-    return reverse(possible_paths)
+    push!(possible_paths, reverse(paths))
+  end
+  return reverse(possible_paths)
 end
 
 # function countmap(arr)

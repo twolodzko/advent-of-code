@@ -25,59 +25,61 @@ end
 
 function part1(input)
   earliest_timestamp, bus_numbers = read_input(input)
-  bus_numbers = filter(x -> !isnothing(x), bus_numbers)
-  closest_arrivals = map(x -> closest_arrival(x, earliest_timestamp), bus_numbers)
+  bus_numbers = convert(Vector{Int}, filter(x -> !isnothing(x), bus_numbers))
+  closest_arrivals = closest_arrival.(bus_numbers, earliest_timestamp)
   i = argmin(closest_arrivals)
   return closest_arrivals[i] * bus_numbers[i]
 end
 
 @assert part1(example) == 295
 
-function allequal(numbers)
-  for i = 2:length(numbers)
-    if numbers[i-1] != numbers[i]
-      return false
+"""
+Naive approach by line search, too slow to work
+"""
+function line_search(bus_numbers, indexes)
+  step, pos = findmax(bus_numbers)
+  offsets = indexes[pos] .- indexes
+  i, x = 1, 1
+  while true
+    x = i * step
+    if all(rem.(x .- offsets, bus_numbers) .== 0)
+      break
     end
+    i += 1
   end
-  return true
+  return x - indexes[pos]
 end
 
-@assert !allequal([1, 2, 3, 4, 5])
-@assert allequal([1, 1, 1, 1, 1])
+@assert line_search([7, 13, 59, 31, 19], [0, 1, 4, 6, 7]) == 1068781
+@assert line_search([17, 13, 19], [0, 2, 3]) == 3417
 
-function all_aligned(timestamps, bus_numbers)
-  return all(rem.(timestamps, bus_numbers) .== 0)
+"""
+Solve Chinese reminder theorem problem using the inverse modulo algorithm
+
+See:
+https://en.wikipedia.org/wiki/Chinese_remainder_theorem
+https://www.geeksforgeeks.org/chinese-remainder-theorem-set-2-implementation/
+https://rosettacode.org/wiki/Chinese_remainder_theorem
+"""
+function chinese_reminder(modulus, reminder)
+  N = prod(modulus)
+  Ni = div.(N, modulus)
+  i = invmod.(Ni, modulus)
+  return mod(sum(reminder .* Ni .* i), N)
 end
 
-# TODO: brute-force would not work!
+@assert chinese_reminder([3, 4, 5], [2, 3, 1]) == 11
+
 function part2(input)
   _, bus_numbers = read_input(input)
 
   nonmissing = map(x -> !isnothing(x), bus_numbers)
   indexes = collect(0:length(bus_numbers)-1)
-
   indexes = indexes[nonmissing]
-  indexes = indexes .- minimum(indexes)
   bus_numbers = bus_numbers[nonmissing]
+  reminders = maximum(indexes) .- indexes
 
-  multiplier, pos = findmax(bus_numbers)
-  corrections = indexes .- indexes[pos]
-
-  timestamps = Int[]
-  i = 1
-
-  while true
-    timestamp = i * multiplier
-    timestamps = timestamp .+ corrections
-
-    if all_aligned(timestamps, bus_numbers)
-      break
-    end
-
-    i += 1
-  end
-
-  return timestamps[1]
+  return chinese_reminder(bus_numbers, reminders) - maximum(reminders)
 end
 
 @assert part2(example) == 1068781
@@ -92,4 +94,4 @@ println("Part 1: $(part1(test))")
 println("Part 2: $(part2(test))")
 
 @assert part1(test) == 4207
-# @assert part2(test) == 29401
+@assert part2(test) == 725850285300475
