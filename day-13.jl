@@ -57,9 +57,9 @@ end
 Solve Chinese reminder theorem problem using the inverse modulo algorithm
 
 See:
-https://en.wikipedia.org/wiki/Chinese_remainder_theorem
-https://www.geeksforgeeks.org/chinese-remainder-theorem-set-2-implementation/
-https://rosettacode.org/wiki/Chinese_remainder_theorem
+* https://en.wikipedia.org/wiki/Chinese_remainder_theorem
+* https://www.geeksforgeeks.org/chinese-remainder-theorem-set-2-implementation/
+* https://rosettacode.org/wiki/Chinese_remainder_theorem
 """
 function chinese_reminder(modulus, reminder)
   N = prod(modulus)
