@@ -12,7 +12,7 @@
 # Treat the charging outlet near your seat as having an effective joltage rating of 0.
 
 function read_array(string::AbstractString)::Vector{Int}
-  return map(x -> parse(Int, x), split(string, '\n', keepempty = false))
+    return map(x -> parse(Int, x), split(string, '\n', keepempty = false))
 end
 
 example1 = read_array("
@@ -66,13 +66,13 @@ example2 = read_array("
 # What is the number of 1-jolt differences multiplied by the number of 3-jolt differences?
 
 function part1(numbers)
-  sorted = sort(numbers)
-  sorted = [0; sorted; sorted[end] + 3]
-  differences = diff(sorted)
-  @assert minimum(differences) == 1
-  @assert maximum(differences) == 3
+    sorted = sort(numbers)
+    sorted = [0; sorted; sorted[end] + 3]
+    differences = diff(sorted)
+    @assert minimum(differences) == 1
+    @assert maximum(differences) == 3
 
-  return sum(differences .== 1) * sum(differences .== 3)
+    return sum(differences .== 1) * sum(differences .== 3)
 end
 
 @assert part1(example2) == 220
@@ -84,20 +84,20 @@ end
 Traverse the tree using recurrsion directly.
 """
 function count_solutions(adapters)
-  solutions_found = 0
-  for i = 2:4
-    if i > length(adapters)
-      break
+    solutions_found = 0
+    for i = 2:4
+        if i > length(adapters)
+            break
+        end
+        if adapters[i] <= (adapters[1] + 3)
+            if i == length(adapters)
+                solutions_found += 1
+            else
+                solutions_found += count_solutions(adapters[i:end])
+            end
+        end
     end
-    if adapters[i] <= (adapters[1] + 3)
-      if i == length(adapters)
-        solutions_found += 1
-      else
-        solutions_found += count_solutions(adapters[i:end])
-      end
-    end
-  end
-  return solutions_found
+    return solutions_found
 end
 
 @time @assert count_solutions([0; sort(example1); 22]) == 8
@@ -114,27 +114,27 @@ in place. Returns the number of paths from the beggining of the sorted list
 of nodes.
 """
 function count_solutions!(adapters, cache::Cache = Cache())
-  socket = adapters[1]
-  if socket in keys(cache)
-    return cache[socket]
-  end
+    socket = adapters[1]
+    if socket in keys(cache)
+        return cache[socket]
+    end
 
-  solutions_found = 0
-  for i = 2:4
-    if i > length(adapters)
-      break
+    solutions_found = 0
+    for i = 2:4
+        if i > length(adapters)
+            break
+        end
+        if adapters[i] <= (socket + 3)
+            if i == length(adapters)
+                solutions_found += 1
+            else
+                # updates cache in place, will be available for next iteration
+                solutions_found += count_solutions!(adapters[i:end], cache)
+            end
+        end
     end
-    if adapters[i] <= (socket + 3)
-      if i == length(adapters)
-        solutions_found += 1
-      else
-        # updates cache in place, will be available for next iteration
-        solutions_found += count_solutions!(adapters[i:end], cache)
-      end
-    end
-  end
-  cache[socket] = solutions_found
-  return solutions_found
+    cache[socket] = solutions_found
+    return solutions_found
 end
 
 @time @assert count_solutions!([0; sort(example1); 22], Cache()) == 8
@@ -145,64 +145,64 @@ Traverse the tree starting from the back, to build the memoization
 cache.
 """
 function init_cache(adapters, step_size = 0.05)
-  n = length(adapters)
-  step = Int(max(1, round(n * step_size)))
-  cache = Cache()
+    n = length(adapters)
+    step = Int(max(1, round(n * step_size)))
+    cache = Cache()
 
-  pos = n
-  while pos >= n / 3
-    pos -= step
-    count_solutions!(adapters[pos:end], cache)
-  end
-  return cache
+    pos = n
+    while pos >= n / 3
+        pos -= step
+        count_solutions!(adapters[pos:end], cache)
+    end
+    return cache
 end
 
 function possible_moves(numbers)
-  moves = []
-  for i = 1:(length(numbers)-1)
-    next_move = Int[]
-    for j = 1:3
-      if (i + j) > length(numbers)
-        break
-      end
-      if numbers[i+j] <= (numbers[i] + 3)
-        push!(next_move, i + j)
-      end
+    moves = []
+    for i = 1:(length(numbers)-1)
+        next_move = Int[]
+        for j = 1:3
+            if (i + j) > length(numbers)
+                break
+            end
+            if numbers[i+j] <= (numbers[i] + 3)
+                push!(next_move, i + j)
+            end
+        end
+        push!(moves, next_move)
     end
-    push!(moves, next_move)
-  end
-  return moves
+    return moves
 end
 
 function traverse(moves, pos = 1)
-  if pos == length(moves)
-    return 1
-  end
-  moves_count = 0
-  for move in moves[pos]
-    moves_count += traverse(moves, move)
-  end
-  return moves_count
+    if pos == length(moves)
+        return 1
+    end
+    moves_count = 0
+    for move in moves[pos]
+        moves_count += traverse(moves, move)
+    end
+    return moves_count
 end
 
 @time @assert traverse(possible_moves([0; sort(example1); 22])) == 8
 @time @assert traverse(possible_moves([0; sort(example2); 52])) == 19208
 
 function reverse_paths(numbers)
-  possible_paths = []
-  for i = length(numbers):-1:2
-    paths = Int[]
-    for j = 1:3
-      if (i - j) <= 0
-        break
-      end
-      if numbers[i] <= (numbers[i-j] + 3)
-        push!(paths, numbers[i-j])
-      end
+    possible_paths = []
+    for i = length(numbers):-1:2
+        paths = Int[]
+        for j = 1:3
+            if (i - j) <= 0
+                break
+            end
+            if numbers[i] <= (numbers[i-j] + 3)
+                push!(paths, numbers[i-j])
+            end
+        end
+        push!(possible_paths, reverse(paths))
     end
-    push!(possible_paths, reverse(paths))
-  end
-  return reverse(possible_paths)
+    return reverse(possible_paths)
 end
 
 # function countmap(arr)
@@ -210,10 +210,10 @@ end
 # end
 
 function part2(numbers)
-  sorted = sort(numbers)
-  full_sequence = [0; sorted; sorted[end] + 3]
-  cache = init_cache(full_sequence)
-  return count_solutions!(full_sequence, cache)
+    sorted = sort(numbers)
+    full_sequence = [0; sorted; sorted[end] + 3]
+    cache = init_cache(full_sequence)
+    return count_solutions!(full_sequence, cache)
 end
 
 

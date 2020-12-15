@@ -23,9 +23,9 @@
 #   The final F keeps the lower of the two, row 44.
 
 function code_to_int(code)
-  code = replace(code, r"F|L" => '0')
-  code = replace(code, r"B|R" => '1')
-  return parse(Int, code, base = 2)
+    code = replace(code, r"F|L" => '0')
+    code = replace(code, r"B|R" => '1')
+    return parse(Int, code, base = 2)
 end
 
 @assert code_to_int("BFFFBBFRRR") == 567
@@ -35,11 +35,11 @@ end
 @assert code_to_int("BBBBBBBBRR") == 1023
 
 function part1(codes)
-  highest = 0
-  for code in split(codes, '\n', keepempty = false)
-    highest = max(highest, code_to_int(code))
-  end
-  return highest
+    highest = 0
+    for code in split(codes, '\n', keepempty = false)
+        highest = max(highest, code_to_int(code))
+    end
+    return highest
 end
 
 example = "
@@ -52,15 +52,15 @@ FFFFFFFFLL
 @assert part1(example) == 1023
 
 function find_missing(numbers)
-  return findfirst(diff(numbers) .> 1)
+    return findfirst(diff(numbers) .> 1)
 end
 
 @assert find_missing([1, 2, 3, 4, 6, 7, 8]) == 4
 
 function part2(codes)
-  seat_numbers = sort([code_to_int(code) for code in split(codes, '\n', keepempty = false)])
-  idx = find_missing(seat_numbers)
-  return seat_numbers[idx] + 1
+    seat_numbers = sort([code_to_int(code) for code in split(codes, '\n', keepempty = false)])
+    idx = find_missing(seat_numbers)
+    return seat_numbers[idx] + 1
 end
 
 test = read("data/day-05.txt", String)

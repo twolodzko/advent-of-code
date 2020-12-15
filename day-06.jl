@@ -2,8 +2,8 @@
 # https://adventofcode.com/2020/day/6
 
 function part1(input)
-  groups = map(x -> Set(replace(x, r"[^a-z]" => "")), split(input, "\n\n"))
-  return sum(map(length, groups))
+    groups = map(x -> Set(replace(x, r"[^a-z]" => "")), split(input, "\n\n"))
+    return sum(map(length, groups))
 end
 
 example = "
@@ -27,10 +27,10 @@ b
 @assert part1(example) == 11
 
 function part2(input)
-  groups = split(input, "\n\n")
-  groups = map(s -> filter(ch -> ch != "", split(s, '\n')), groups)
-  common_items = map(g -> reduce(intersect, g), groups)
-  return sum(map(length, common_items))
+    groups = split(input, "\n\n")
+    groups = map(s -> filter(ch -> ch != "", split(s, '\n')), groups)
+    common_items = map(g -> reduce(intersect, g), groups)
+    return sum(map(length, common_items))
 end
 
 @assert part2(example) == 6

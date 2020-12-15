@@ -23,9 +23,9 @@ const char_to_direction = Dict("N" => :North, "E" => :East, "S" => :South, "W" =
 Point = Tuple{Integer,Integer}
 
 mutable struct Ship
-  facing::Symbol
-  position::Point
-  waypoint::Point
+    facing::Symbol
+    position::Point
+    waypoint::Point
 end
 
 facing(ship::Ship) = ship.facing
@@ -33,12 +33,12 @@ position(ship::Ship) = ship.position
 waypoint(ship::Ship) = ship.waypoint
 
 function rotate(facing::Symbol, direction::Symbol, deg::Integer = 90)
-  steps, reminder = divrem(deg, 90)
-  reminder == 0 || error("ups, it can move diagonally!")
-  direction = direction == :Right ? +1 : -1
-  direction_index = findfirst(directions .== facing)
-  direction_index = mod1(direction_index + steps * direction, 4)
-  return directions[direction_index]
+    steps, reminder = divrem(deg, 90)
+    reminder == 0 || error("ups, it can move diagonally!")
+    direction = direction == :Right ? +1 : -1
+    direction_index = findfirst(directions .== facing)
+    direction_index = mod1(direction_index + steps * direction, 4)
+    return directions[direction_index]
 end
 
 @assert rotate(:East, :Left) == :North
@@ -48,94 +48,94 @@ end
 @assert rotate(:North, :Left, 360) == :North
 
 function part1(string::AbstractString; verbose = false)
-  ship = Ship(:East, (0, 0), (0, 0))
+    ship = Ship(:East, (0, 0), (0, 0))
 
-  for row in split(string, '\n', keepempty = false)
-    row = strip(row)
-    m = match(r"([NSEWLRF])(\d+)", row)
-    if isnothing(m)
-      error("invalid input")
+    for row in split(string, '\n', keepempty = false)
+        row = strip(row)
+        m = match(r"([NSEWLRF])(\d+)", row)
+        if isnothing(m)
+            error("invalid input")
+        end
+        action, value = m.captures
+        value = parse(Int, value)
+
+        if action in ("L", "R")
+            direction = rotate(facing(ship), action == "L" ? :Left : :Right, value)
+            ship.facing = direction
+            value = 0
+        elseif action == "F"
+            direction = facing(ship)
+        else
+            direction = char_to_direction[action]
+        end
+
+        x, y = position(ship)
+        if direction == :North
+            x += value
+        elseif direction == :South
+            x -= value
+        elseif direction == :East
+            y += value
+        else
+            y -= value
+        end
+        ship.position = (x, y)
+
     end
-    action, value = m.captures
-    value = parse(Int, value)
-
-    if action in ("L", "R")
-      direction = rotate(facing(ship), action == "L" ? :Left : :Right, value)
-      ship.facing = direction
-      value = 0
-    elseif action == "F"
-      direction = facing(ship)
-    else
-      direction = char_to_direction[action]
-    end
-
-    x, y = position(ship)
-    if direction == :North
-      x += value
-    elseif direction == :South
-      x -= value
-    elseif direction == :East
-      y += value
-    else
-      y -= value
-    end
-    ship.position = (x, y)
-
-  end
-  return position(ship) .|> abs |> sum
+    return position(ship) .|> abs |> sum
 end
 
 @assert part1(example) == 25
 
 function rotate(point::Point, deg::Integer)::Point
-  θ = deg2rad(deg)
-  x, y = point
-  x_new = cos(θ) * x - sin(θ) * y
-  y_new = sin(θ) * x + cos(θ) * y
-  return Int(round(x_new)), Int(round(y_new))
+    θ = deg2rad(deg)
+    x, y = point
+    x_new = cos(θ) * x - sin(θ) * y
+    y_new = sin(θ) * x + cos(θ) * y
+    return Int(round(x_new)), Int(round(y_new))
 end
 
 @assert rotate((10, 4), 90) == (-4, 10)
 
 function part2(string::AbstractString; verbose = false)
-  ship = Ship(:East, (0, 0), (1, 10))
+    ship = Ship(:East, (0, 0), (1, 10))
 
-  for row in split(string, '\n', keepempty = false)
-    row = strip(row)
-    m = match(r"([NSEWLRF])(\d+)", row)
-    if isnothing(m)
-      error("invalid input")
+    for row in split(string, '\n', keepempty = false)
+        row = strip(row)
+        m = match(r"([NSEWLRF])(\d+)", row)
+        if isnothing(m)
+            error("invalid input")
+        end
+        action, value = m.captures
+        value = parse(Int, value)
+
+        if action in ("N", "S", "W", "E")
+            x, y = waypoint(ship)
+            if action == "N"
+                x += value
+            elseif action == "S"
+                x -= value
+            elseif action == "E"
+                y += value
+            else
+                y -= value
+            end
+            ship.waypoint = (x, y)
+        elseif action in ("L", "R")
+            if action == "L"
+                value = 360 - value
+            end
+            ship.waypoint = rotate(waypoint(ship), value)
+        else
+            wx, wy = waypoint(ship)
+            px, py = position(ship)
+            ship.position = (px + wx * value, py + wy * value)
+        end
+
+        verbose && println("$(row):\t Ship at $(position(ship)), with waypoint $(waypoint(ship))")
+
     end
-    action, value = m.captures
-    value = parse(Int, value)
-
-    if action in ("N", "S", "W", "E")
-      x, y = waypoint(ship)
-      if action == "N"
-        x += value
-      elseif action == "S"
-        x -= value
-      elseif action == "E"
-        y += value
-      else
-        y -= value
-      end
-      ship.waypoint = (x, y)
-    elseif action in ("L", "R")
-      if action == "L"
-        value = 360 - value
-      end
-      ship.waypoint = rotate(waypoint(ship), value)
-    else
-      wx, wy = waypoint(ship)
-      px, py = position(ship)
-      ship.position = (px + wx * value, py + wy * value)
-    end
-
-    verbose && println("$(row):\t Ship at $(position(ship)), with waypoint $(waypoint(ship))")
-
-  end
-  return position(ship) .|> abs |> sum
+    return position(ship) .|> abs |> sum
 end
 
 @assert part2(example) == 286
