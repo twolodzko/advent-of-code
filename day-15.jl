@@ -6,82 +6,44 @@ function parse_input(string)
     return map(x -> parse(Int, x), split(string, ',', keepempty=false))
 end
 
-struct Stack
-    values::Vector{Integer}
-    counts::Vector{Integer}
-
-    Stack(values, counts) = new(values, counts)
-
-    function Stack(numbers)
-        @assert allunique(numbers)
-        return new(numbers, collect(1:length(numbers)))
-    end
-end
-
-function findnth(value::T, arr::Vector{T}, n::Integer) where {T}
-    count = 0
-    for i in 1:length(arr)
-        if arr[i] == value
-            count += 1
-            if count == n
-                return i
-            end
-        end
-    end
-    return nothing
-end
-
-@assert findnth(1, [1, 2, 3, 1, 2, 3], 2) == 4
-@assert findnth(1, [1, 2, 3, 1, 1, 1], 2) == 4
-@assert findnth(2, [1, 2, 3, 1, 1, 1], 2) === nothing
-
-function turn!(stack::Stack)
-    pos = findfirst(x -> x == stack.values[1], stack.values[2:end])
-    number = isnothing(pos) ? 0 : stack.counts[pos]
-
-    pushfirst!(stack.values, number)
-    pushfirst!(stack.counts, 0)
-    stack.counts .+= 1
-
-    next = findnth(number, stack.values, 3)
-    if !isnothing(next)
-        deleteat!(stack.values, next)
-        deleteat!(stack.counts, next)
-    end
-
-    return stack
-end
-
-(function ()
-    stack = Stack([6, 3, 0])
-    for (i, expected) in enumerate([0, 3, 3, 1, 0, 4, 0])
-        number = stack.values[1]
-        turn!(stack)
-        @assert stack.values[1] == expected
-    end
-end)()
-
 function create_sequence(starting_sequence, turns)
-    # stack = Stack(starting_sequence)
-    last_number = starting_sequence[1]
+    previous = starting_sequence[1]
     history = starting_sequence[2:end]
-    for i = (length(history) + 2):turns
-        pos = findfirst(x -> x == last_number, history)
-        pushfirst!(history, last_number)
-        last_number = isnothing(pos) ? 0 : pos
-
-        # turn!(stack)
-        # if stack.values[1] != last_number
-        #     return i, stack, last_number, history
-        # end
+    for _ in 1:(turns - length(starting_sequence))
+        pos = findfirst(x -> x == previous, history)
+        pushfirst!(history, previous)
+        previous = isnothing(pos) ? 0 : pos
     end
-    pushfirst!(history, last_number)
+    pushfirst!(history, previous)
     return history
+end
+
+function static_memory_sequence(starting_sequence, turns)
+    n = max(turns + 1, maximum(starting_sequence))
+    memory = zeros(Int32, n)
+    mask = Integer[]
+
+    for (i, prev) in enumerate(starting_sequence[2:end])
+        memory[prev + 1] = i
+        push!(mask, prev + 1)
+    end
+
+    prev = starting_sequence[1]
+    for _ in 1:(turns - length(starting_sequence))
+        pos = memory[prev + 1]
+        if pos == 0
+            push!(mask, prev + 1)
+        end
+        memory[prev + 1] = 0
+        memory[mask] .+= 1
+        prev = pos
+    end
+    return prev
 end
 
 function part1(string, turns=2020)
     starting_sequence = reverse(parse_input(string))
-    return create_sequence(starting_sequence, turns)[1]
+    return static_memory_sequence(starting_sequence, turns)
 end
 
 @assert part1(example, 10) == 0
