@@ -34,26 +34,6 @@ end
 @assert part1(example) == 295
 
 """
-Naive approach by line search, too slow to work
-"""
-function line_search(bus_numbers, indexes)
-    step, pos = findmax(bus_numbers)
-    offsets = indexes[pos] .- indexes
-    i, x = 1, 1
-    while true
-        x = i * step
-        if all(rem.(x .- offsets, bus_numbers) .== 0)
-            break
-        end
-        i += 1
-    end
-    return x - indexes[pos]
-end
-
-@assert line_search([7, 13, 59, 31, 19], [0, 1, 4, 6, 7]) == 1068781
-@assert line_search([17, 13, 19], [0, 2, 3]) == 3417
-
-"""
 Solve Chinese reminder theorem problem using the inverse modulo algorithm
 
 See:

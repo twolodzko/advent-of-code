@@ -27,10 +27,10 @@ nearby tickets:
 38,6,12
 "
 
-split_lines(str) = split(str, '\n', keepempty=false)
+split_lines(str) = split(str, '\n', keepempty = false)
 
 function parse_range(string::AbstractString)::AbstractRange
-    from, to = map(d -> parse(Int, d), split(strip(string), '-', keepempty=false))
+    from, to = map(d -> parse(Int, d), split(strip(string), '-', keepempty = false))
     return from:to
 end
 
@@ -42,7 +42,7 @@ function parse_rule(string::AbstractString)
         error("parsing error")
     end
     name, rule_string = m.captures
-    ranges = map(parse_range, split(rule_string, "or", keepempty=false))
+    ranges = map(parse_range, split(rule_string, "or", keepempty = false))
     return name, ranges
 end
 
@@ -51,11 +51,11 @@ end
 @assert parse_rule("bar: 6-11 or 33-44 or 55-66 ") == ("bar", [6:11, 33:44, 55:66])
 
 function parse_ticket(string::AbstractString)
-    return map(d -> parse(Int, d), split(string, ',', keepempty=false))
+    return map(d -> parse(Int, d), split(string, ',', keepempty = false))
 end
 
 function parse_input(input::AbstractString)
-    rules, my_ticket, nearby_tickets = split(input, "\n\n", keepempty=false)
+    rules, my_ticket, nearby_tickets = split(input, "\n\n", keepempty = false)
     rules = Dict(map(parse_rule, split_lines(rules)))
     my_ticket = parse_ticket(split_lines(my_ticket)[2])
     nearby_tickets = map(parse_ticket, split_lines(nearby_tickets)[2:end])

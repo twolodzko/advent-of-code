@@ -7,26 +7,10 @@ function parse_input(string)
 end
 
 """
-Direct implementation. Doesn't scale.
-"""
-function create_sequence(starting_sequence, turns)
-    starting_sequence = reverse(starting_sequence)
-    previous = starting_sequence[1]
-    history = starting_sequence[2:end]
-    for _ = 1:(turns-length(starting_sequence))
-        pos = findfirst(x -> x == previous, history)
-        pushfirst!(history, previous)
-        previous = isnothing(pos) ? 0 : pos
-    end
-    pushfirst!(history, previous)
-    return history[1]
-end
-
-"""
 Use array as a lookup table since keys are integers and we know the
 upper bound. Access to array's elements is O(1).
 """
-function sequence_memory(starting_sequence, turns)
+function memoize_sequence(starting_sequence, turns)
     n = max(turns + 1, maximum(starting_sequence))
     memory = zeros(Int32, n) .- (2 * n)
 
@@ -47,7 +31,7 @@ end
 
 function part1(string, turns = 2020)
     starting_sequence = parse_input(string)
-    return sequence_memory(starting_sequence, turns)
+    return memoize_sequence(starting_sequence, turns)
 end
 
 @assert part1(example, 10) == 0

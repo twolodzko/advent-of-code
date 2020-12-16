@@ -172,27 +172,6 @@ function apply_rules(layout)
     return updated
 end
 
-function layout_to_string(layout)
-    out = "\n"
-    n, k = size(layout)
-    for i = 1:n
-        for j = 1:k
-            if layout[i, j] == :Empty
-                out *= 'L'
-            elseif layout[i, j] == :Occupied
-                out *= '#'
-            else
-                out *= '.'
-            end
-        end
-        out *= '\n'
-    end
-    return out
-end
-
-@assert layout_to_string(read_layout(example1[1])) == example1[1]
-@assert layout_to_string(read_layout(example1[3])) == example1[3]
-
 @assert apply_rules(read_layout(example1[1])) == read_layout(example1[2])
 @assert apply_rules(read_layout(example1[2])) == read_layout(example1[3])
 @assert apply_rules(read_layout(example1[3])) == read_layout(example1[4])

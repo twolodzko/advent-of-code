@@ -81,29 +81,6 @@ end
 # the charging outlet to your device?
 
 """
-Traverse the tree using recurrsion directly.
-"""
-function count_solutions(adapters)
-    solutions_found = 0
-    for i = 2:4
-        if i > length(adapters)
-            break
-        end
-        if adapters[i] <= (adapters[1] + 3)
-            if i == length(adapters)
-                solutions_found += 1
-            else
-                solutions_found += count_solutions(adapters[i:end])
-            end
-        end
-    end
-    return solutions_found
-end
-
-@time @assert count_solutions([0; sort(example1); 22]) == 8
-@time @assert count_solutions([0; sort(example2); 52]) == 19208
-
-"""
 Cache for holding the partial solution, it maps: node => solutions_count.
 """
 Cache = Dict{Int,Int}
@@ -157,65 +134,12 @@ function init_cache(adapters, step_size = 0.05)
     return cache
 end
 
-function possible_moves(numbers)
-    moves = []
-    for i = 1:(length(numbers)-1)
-        next_move = Int[]
-        for j = 1:3
-            if (i + j) > length(numbers)
-                break
-            end
-            if numbers[i+j] <= (numbers[i] + 3)
-                push!(next_move, i + j)
-            end
-        end
-        push!(moves, next_move)
-    end
-    return moves
-end
-
-function traverse(moves, pos = 1)
-    if pos == length(moves)
-        return 1
-    end
-    moves_count = 0
-    for move in moves[pos]
-        moves_count += traverse(moves, move)
-    end
-    return moves_count
-end
-
-@time @assert traverse(possible_moves([0; sort(example1); 22])) == 8
-@time @assert traverse(possible_moves([0; sort(example2); 52])) == 19208
-
-function reverse_paths(numbers)
-    possible_paths = []
-    for i = length(numbers):-1:2
-        paths = Int[]
-        for j = 1:3
-            if (i - j) <= 0
-                break
-            end
-            if numbers[i] <= (numbers[i-j] + 3)
-                push!(paths, numbers[i-j])
-            end
-        end
-        push!(possible_paths, reverse(paths))
-    end
-    return reverse(possible_paths)
-end
-
-# function countmap(arr)
-#     return Dict(k => count(x -> x == k, arr) for k in unique(arr))
-# end
-
 function part2(numbers)
     sorted = sort(numbers)
     full_sequence = [0; sorted; sorted[end] + 3]
     cache = init_cache(full_sequence)
     return count_solutions!(full_sequence, cache)
 end
-
 
 @time @assert part2(example1) == 8
 @time @assert part2(example2) == 19208

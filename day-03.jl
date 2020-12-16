@@ -11,12 +11,6 @@
 # and down 1. Then, check the position that is right 3 and down 1 from there, and
 # so on until you go past the bottom of the map.
 
-function replace_at(string, ind, char)
-    tmp = collect(string)
-    tmp[ind] = char
-    return String(tmp)
-end
-
 function part1(patch, right, down = 1)
     trees_count = 0
     position = 1

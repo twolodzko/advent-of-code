@@ -94,7 +94,6 @@ end
 
 @assert part1(example1) == 4
 
-
 function rules_to_dict(input)
     rules = Dict{String,Array{Bag}}()
     for row in split(input, '\n', keepempty = false)
