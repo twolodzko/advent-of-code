@@ -3,7 +3,7 @@
 example = "0,3,6"
 
 function parse_input(string)
-    return map(x -> parse(Int, x), split(string, ',', keepempty=false))
+    return map(x -> parse(Int, x), split(string, ',', keepempty = false))
 end
 
 """
@@ -13,7 +13,7 @@ function create_sequence(starting_sequence, turns)
     starting_sequence = reverse(starting_sequence)
     previous = starting_sequence[1]
     history = starting_sequence[2:end]
-    for _ in 1:(turns - length(starting_sequence))
+    for _ = 1:(turns-length(starting_sequence))
         pos = findfirst(x -> x == previous, history)
         pushfirst!(history, previous)
         previous = isnothing(pos) ? 0 : pos
@@ -30,22 +30,22 @@ function sequence_memory(starting_sequence, turns)
     n = max(turns + 1, maximum(starting_sequence))
     memory = zeros(Int32, n) .- (2 * n)
 
-    for (i, prev) in enumerate(starting_sequence[1:(end - 1)])
-        memory[prev + 1] = i
+    for (i, prev) in enumerate(starting_sequence[1:(end-1)])
+        memory[prev+1] = i
     end
 
     prev = starting_sequence[end]
     pos = 0
 
-    for i in length(starting_sequence):(turns - 1)
-        pos = memory[prev + 1]
-        memory[prev + 1] = i
+    for i = length(starting_sequence):(turns-1)
+        pos = memory[prev+1]
+        memory[prev+1] = i
         prev = pos > 0 ? i - pos : 0
     end
     return prev
 end
 
-function part1(string, turns=2020)
+function part1(string, turns = 2020)
     starting_sequence = parse_input(string)
     return sequence_memory(starting_sequence, turns)
 end
