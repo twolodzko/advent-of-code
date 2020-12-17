@@ -12,7 +12,7 @@
 # Treat the charging outlet near your seat as having an effective joltage rating of 0.
 
 function read_array(string::AbstractString)::Vector{Int}
-    return map(x -> parse(Int, x), split(string, '\n', keepempty = false))
+    return map(x -> parse(Int, x), split(string, '\n', keepempty=false))
 end
 
 example1 = read_array("
@@ -90,7 +90,7 @@ Use memoized shortcuts when traversing the tree. On the way, update the cache
 in place. Returns the number of paths from the beggining of the sorted list
 of nodes.
 """
-function count_solutions!(adapters, cache::Cache = Cache())
+function count_solutions!(adapters, cache::Cache=Cache())
     socket = adapters[1]
     if socket in keys(cache)
         return cache[socket]
@@ -114,14 +114,14 @@ function count_solutions!(adapters, cache::Cache = Cache())
     return solutions_found
 end
 
-@time @assert count_solutions!([0; sort(example1); 22], Cache()) == 8
-@time @assert count_solutions!([0; sort(example2); 52], Cache()) == 19208
+@assert count_solutions!([0; sort(example1); 22], Cache()) == 8
+@assert count_solutions!([0; sort(example2); 52], Cache()) == 19208
 
 """
 Traverse the tree starting from the back, to build the memoization
 cache.
 """
-function init_cache(adapters, step_size = 0.05)
+function init_cache(adapters, step_size=0.05)
     n = length(adapters)
     step = Int(max(1, round(n * step_size)))
     cache = Cache()
@@ -141,20 +141,20 @@ function part2(numbers)
     return count_solutions!(full_sequence, cache)
 end
 
-@time @assert part2(example1) == 8
-@time @assert part2(example2) == 19208
+@assert part2(example1) == 8
+@assert part2(example2) == 19208
 
 test = read_array(read("data/day-10.txt", String))
 println("Part 1: $(part1(test))")
 println("Part 2: $(part2(test))")
 
-@assert part1(test) == 2738
-@assert part2(test) == 74049191673856
+part1(test) == 2738
+part2(test) == 74049191673856
 
 println()
 print("Example 1: ")
 @time @assert part2(example1) == 8
 print("Example 2: ")
 @time @assert part2(example2) == 19208
-print("Part 2: ")
+print("Part 2:    ")
 @time @assert part2(test) == 74049191673856

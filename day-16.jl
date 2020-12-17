@@ -161,7 +161,7 @@ function guess_fields(rules, nearby_tickets)
     end
 
     # eliminate the rules, assumming that there is a unique mapping
-    field_names = Array{AbstractString,1}(undef, number_of_fields)
+    field_names = Array{String,1}(undef, number_of_fields)
     for _ = 1:number_of_fields
         pos = findfirst(map(length, field_candidates) .== 1)
         name = first(field_candidates[pos])  # extract the only element
