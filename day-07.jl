@@ -34,7 +34,7 @@ struct Bag
 end
 
 function rule_parser(rule)
-    bag, contains = split(rule, " contain ", limit = 2)
+    bag, contains = split(rule, " contain ", limit=2)
     bag = Bag(bag)
     contains = [Bag(elem) for elem in split(contains, ',')]
     return bag, filter(x -> !isnothing(x), contains)
@@ -43,7 +43,7 @@ end
 function rules_to_revdict(input)
     bags = Dict()
 
-    for row in split(input, '\n', keepempty = false)
+    for row in split(input, '\n', keepempty=false)
         bag, contains = rule_parser(row)
 
         for elem in contains
@@ -64,7 +64,7 @@ end
 
 @assert rules_to_revdict(example1)["shiny gold"] == ["bright white", "muted yellow"]
 
-function search_for_possible_bag_colors(bags, target = "shiny gold")
+function search_for_possible_bag_colors(bags, target="shiny gold")
     possible_colors = Set()
     to_search = [target]
 
@@ -96,7 +96,7 @@ end
 
 function rules_to_dict(input)
     rules = Dict{String,Array{Bag}}()
-    for row in split(input, '\n', keepempty = false)
+    for row in split(input, '\n', keepempty=false)
         bag, contains = rule_parser(row)
         rules[bag.kind] = contains
     end
@@ -140,8 +140,8 @@ dark violet bags contain no other bags.
 @assert part2(example2) == 126
 
 test = read("data/day-07.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 222
-@assert part2(test) == 13264
+@assert result1 == 222
+@assert result2 == 13264

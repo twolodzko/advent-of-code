@@ -26,7 +26,7 @@ end
 function parse_input(string)
     programs = Program[]
     mask, mem = [], []
-    for (i, row) in enumerate(split(string, '\n', keepempty = false))
+    for (i, row) in enumerate(split(string, '\n', keepempty=false))
         row = strip(row)
         key, value = split(row, '=')
         key, value = strip(key), strip(value)
@@ -91,7 +91,7 @@ end
 @assert apply_mask(Bool[0, 1, 0, 1], [true, nothing, true, nothing]) == Bool[1, 1, 1, 1]
 
 function tobinary(value::Integer)::Binary
-    return convert(Vector{Bool}, reverse(digits(value, base = 2, pad = MEM_SIZE)))
+    return convert(Vector{Bool}, reverse(digits(value, base=2, pad=MEM_SIZE)))
 end
 
 @assert tobinary(42) ==
@@ -141,7 +141,7 @@ end
 
 Base.repr(obj::Binary) = join([Dict(true => 1, false => 0)[x] for x in obj])
 
-function write_ver2(programs::Vector{Program}; verbose = false)
+function write_ver2(programs::Vector{Program}; verbose=false)
     memory = Dict{Integer,Integer}()
     for program in programs
         for cmd in program.mem
@@ -188,8 +188,8 @@ end
 @assert part2(example2) == 208
 
 test = read("data/day-14.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 6386593869035
-@assert part2(test) == 4288986482164
+@assert result1 == 6386593869035
+@assert result2 == 4288986482164

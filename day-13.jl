@@ -6,7 +6,7 @@ example = "
 "
 
 function read_input(string)
-    earliest_timestamp, bus_numbers = split(string, '\n', keepempty = false)
+    earliest_timestamp, bus_numbers = split(string, '\n', keepempty=false)
     earliest_timestamp = parse(Int, earliest_timestamp)
     bus_numbers = map(x -> tryparse(Int, x), split(bus_numbers, ','))
     return earliest_timestamp, bus_numbers
@@ -70,8 +70,8 @@ end
 @assert part2("0\n1789,37,47,1889") == 1202161486
 
 test = read("data/day-13.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 4207
-@assert part2(test) == 725850285300475
+@assert result1 == 4207
+@assert result2 == 725850285300475

@@ -124,8 +124,8 @@ iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719
 @assert part2(example2) == 4
 
 test = read("data/day-04.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 208
-@assert part2(test) == 167
+@assert result1 == 208
+@assert result2 == 167

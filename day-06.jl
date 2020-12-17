@@ -36,8 +36,8 @@ end
 @assert part2(example) == 6
 
 test = read("data/day-06.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 6530
-@assert part2(test) == 3323
+@assert result1 == 6530
+@assert result2 == 3323

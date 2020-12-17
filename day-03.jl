@@ -11,12 +11,12 @@
 # and down 1. Then, check the position that is right 3 and down 1 from there, and
 # so on until you go past the bottom of the map.
 
-function part1(patch, right, down = 1)
+function part1(patch, right, down=1)
     trees_count = 0
     position = 1
     time_to_move = 1
 
-    for row in split(patch, '\n', keepempty = false)
+    for row in split(patch, '\n', keepempty=false)
         if time_to_move == 1
             if row[position] == '#'
                 trees_count += 1
@@ -70,8 +70,8 @@ end
 @assert part2(example, [1 3 5 7 1], [1 1 1 1 2]) == 336
 
 test = read("data/day-03.txt", String)
-println("Part 1: $(part1(test, 3))")
-println("Part 2: $(part2(test, [1 3 5 7 1], [1 1 1 1 2]))")
+println("Part 1: $(result1 = part1(test, 3))")
+println("Part 2: $(result2 = part2(test, [1 3 5 7 1], [1 1 1 1 2]))")
 
-@assert part1(test, 3) == 203
-@assert part2(test, [1 3 5 7 1], [1 1 1 1 2]) == 3316272960
+@assert result1 == 203
+@assert result2 == 3316272960

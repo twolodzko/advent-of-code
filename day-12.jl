@@ -32,7 +32,7 @@ facing(ship::Ship) = ship.facing
 position(ship::Ship) = ship.position
 waypoint(ship::Ship) = ship.waypoint
 
-function rotate(facing::Symbol, direction::Symbol, deg::Integer = 90)
+function rotate(facing::Symbol, direction::Symbol, deg::Integer=90)
     steps, reminder = divrem(deg, 90)
     reminder == 0 || error("ups, it can move diagonally!")
     direction = direction == :Right ? +1 : -1
@@ -47,10 +47,10 @@ end
 @assert rotate(:East, :Right) == :South
 @assert rotate(:North, :Left, 360) == :North
 
-function part1(string::AbstractString; verbose = false)
+function part1(string::AbstractString; verbose=false)
     ship = Ship(:East, (0, 0), (0, 0))
 
-    for row in split(string, '\n', keepempty = false)
+    for row in split(string, '\n', keepempty=false)
         row = strip(row)
         m = match(r"([NSEWLRF])(\d+)", row)
         if isnothing(m)
@@ -97,10 +97,10 @@ end
 
 @assert rotate((10, 4), 90) == (-4, 10)
 
-function part2(string::AbstractString; verbose = false)
+function part2(string::AbstractString; verbose=false)
     ship = Ship(:East, (0, 0), (1, 10))
 
-    for row in split(string, '\n', keepempty = false)
+    for row in split(string, '\n', keepempty=false)
         row = strip(row)
         m = match(r"([NSEWLRF])(\d+)", row)
         if isnothing(m)
@@ -141,8 +141,8 @@ end
 @assert part2(example) == 286
 
 test = read("data/day-12.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 415
-@assert part2(test) == 29401
+@assert result1 == 415
+@assert result2 == 29401

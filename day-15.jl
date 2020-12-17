@@ -3,7 +3,7 @@
 example = "0,3,6"
 
 function parse_input(string)
-    return map(x -> parse(Int, x), split(string, ',', keepempty = false))
+    return map(x -> parse(Int, x), split(string, ',', keepempty=false))
 end
 
 """
@@ -29,7 +29,7 @@ function memoize_sequence(starting_sequence, turns)
     return prev
 end
 
-function part1(string, turns = 2020)
+function part1(string, turns=2020)
     starting_sequence = parse_input(string)
     return memoize_sequence(starting_sequence, turns)
 end
@@ -54,8 +54,8 @@ part2(string) = part1(string, 30000000)
 @assert part2("3,1,2") == 362
 
 test = "0,13,16,17,1,10,6"
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 276
-@assert part2(test) == 31916
+@assert result1 == 276
+@assert result2 == 31916

@@ -11,83 +11,6 @@
 #
 # Floor (.) never changes; seats don't move, and nobody sits on the floor.
 
-#! format: off
-example1 = String[
-"
-L.LL.LL.LL
-LLLLLLL.LL
-L.L.L..L..
-LLLL.LL.LL
-L.LL.LL.LL
-L.LLLLL.LL
-..L.L.....
-LLLLLLLLLL
-L.LLLLLL.L
-L.LLLLL.LL
-",
-"
-#.##.##.##
-#######.##
-#.#.#..#..
-####.##.##
-#.##.##.##
-#.#####.##
-..#.#.....
-##########
-#.######.#
-#.#####.##
-",
-"
-#.LL.L#.##
-#LLLLLL.L#
-L.L.L..L..
-#LLL.LL.L#
-#.LL.LL.LL
-#.LLLL#.##
-..L.L.....
-#LLLLLLLL#
-#.LLLLLL.L
-#.#LLLL.##
-",
-"
-#.##.L#.##
-#L###LL.L#
-L.#.#..#..
-#L##.##.L#
-#.##.LL.LL
-#.###L#.##
-..#.#.....
-#L######L#
-#.LL###L.L
-#.#L###.##
-",
-"
-#.#L.L#.##
-#LLL#LL.L#
-L.L.L..#..
-#LLL.##.L#
-#.LL.LL.LL
-#.LL#L#.##
-..L.L.....
-#L#LLLL#L#
-#.LLLLLL.L
-#.#L#L#.##
-",
-"
-#.#L.L#.##
-#LLL#LL.L#
-L.#.L..#..
-#L##.##.L#
-#.#L.LL.LL
-#.#L#L#.##
-..L.L.....
-#L#L##L#L#
-#.LLLLLL.L
-#.#L#L#.##
-"
-]
-#! format: on
-
 function decode_seat(char::Char)
     if char == 'L'
         return :Empty
@@ -101,7 +24,7 @@ function decode_seat(char::Char)
 end
 
 function read_layout(string::AbstractString)
-    rows = map(strip, split(string, '\n', keepempty = false))
+    rows = map(strip, split(string, '\n', keepempty=false))
     layout = Array{Symbol,2}(undef, length(rows), length(rows[1]))
 
     for (i, row) in enumerate(rows)
@@ -172,6 +95,8 @@ function apply_rules(layout)
     return updated
 end
 
+example1 = split(read("data/day-11-example1.txt", String), "\n\n", keepempty=false)
+
 @assert apply_rules(read_layout(example1[1])) == read_layout(example1[2])
 @assert apply_rules(read_layout(example1[2])) == read_layout(example1[3])
 @assert apply_rules(read_layout(example1[3])) == read_layout(example1[4])
@@ -201,95 +126,6 @@ end
 # Also, people seem to be more tolerant than you expected: it now takes five or more visible
 # occupied seats for an occupied seat to become empty (rather than four or more from the
 # previous rules). The other rules still apply (...)
-
-#! format: off
-example2 = [
-"
-L.LL.LL.LL
-LLLLLLL.LL
-L.L.L..L..
-LLLL.LL.LL
-L.LL.LL.LL
-L.LLLLL.LL
-..L.L.....
-LLLLLLLLLL
-L.LLLLLL.L
-L.LLLLL.LL
-",
-"
-#.##.##.##
-#######.##
-#.#.#..#..
-####.##.##
-#.##.##.##
-#.#####.##
-..#.#.....
-##########
-#.######.#
-#.#####.##
-",
-"
-#.LL.LL.L#
-#LLLLLL.LL
-L.L.L..L..
-LLLL.LL.LL
-L.LL.LL.LL
-L.LLLLL.LL
-..L.L.....
-LLLLLLLLL#
-#.LLLLLL.L
-#.LLLLL.L#
-",
-"
-#.L#.##.L#
-#L#####.LL
-L.#.#..#..
-##L#.##.##
-#.##.#L.##
-#.#####.#L
-..#.#.....
-LLL####LL#
-#.L#####.L
-#.L####.L#
-",
-"
-#.L#.L#.L#
-#LLLLLL.LL
-L.L.L..#..
-##LL.LL.L#
-L.LL.LL.L#
-#.LLLLL.LL
-..L.L.....
-LLLLLLLLL#
-#.LLLLL#.L
-#.L#LL#.L#
-",
-"
-#.L#.L#.L#
-#LLLLLL.LL
-L.L.L..#..
-##L#.#L.L#
-L.L#.#L.L#
-#.L####.LL
-..#.#.....
-LLL###LLL#
-#.LLLLL#.L
-#.L#LL#.L#
-",
-"
-#.L#.L#.L#
-#LLLLLL.LL
-L.L.L..#..
-##L#.#L.L#
-L.L#.LL.L#
-#.LLLL#.LL
-..#.L.....
-LLL###LLL#
-#.LLLLL#.L
-#.L#LL#.L#
-"
-]
-#! format: on
 
 function first_visible_seat(layout, x, y, dx, dy)
     n, k = size(layout)
@@ -342,7 +178,6 @@ end
 @assert count_first_visible_seats(read_layout("#.#..\n.....\n.#L..\n.....\n...#."), 3, 3) == 3
 @assert count_first_visible_seats(read_layout("L...#\n.....\n#....\n.#...\n....."), 1, 1) == 2
 
-#! format: off
 no_occupied_seats_example = "
 .##.##.
 #.#.#.#
@@ -352,7 +187,6 @@ no_occupied_seats_example = "
 #.#.#.#
 .##.##.
 "
-#! format: on
 
 @assert count_first_visible_seats(read_layout(no_occupied_seats_example), 4, 4) == 0
 @assert count_first_visible_seats(read_layout("#.##.##.##\n#######.##"), 1, 3) == 5
@@ -378,6 +212,8 @@ function apply_rules_2(layout)
     return updated
 end
 
+example2 = split(read("data/day-11-example2.txt", String), "\n\n", keepempty=false)
+
 @assert apply_rules_2(read_layout(example2[1])) == read_layout(example2[2])
 @assert apply_rules_2(read_layout(example2[2])) == read_layout(example2[3])
 @assert apply_rules_2(read_layout(example2[3])) == read_layout(example2[4])
@@ -401,8 +237,8 @@ end
 @assert part2(example2[1]) == 26
 
 test = read("data/day-11.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 2238
-@assert part2(test) == 2013
+@assert result1 == 2238
+@assert result2 == 2013

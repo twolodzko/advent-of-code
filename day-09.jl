@@ -6,9 +6,9 @@
 # The two numbers will have different values, and there might be more than one
 # such pair.
 
-function is_xmas_seq(numbers; preamble_size = 25)
+function is_xmas_seq(numbers; preamble_size=25)
     number = numbers[end]
-    preamble = sort(numbers[(end-preamble_size):(end-1)], rev = true)
+    preamble = sort(numbers[(end-preamble_size):(end-1)], rev=true)
     @assert length(preamble) == preamble_size
 
     for (i, x) in enumerate(preamble)
@@ -56,9 +56,9 @@ example = read_array("
 576
 ")
 
-function find_first_invalid(numbers; preamble_size = 25)
+function find_first_invalid(numbers; preamble_size=25)
     for pos = (preamble_size+1):length(numbers)
-        if !is_xmas_seq(numbers[1:pos], preamble_size = preamble_size)
+        if !is_xmas_seq(numbers[1:pos], preamble_size=preamble_size)
             return numbers[pos], pos
         end
     end
@@ -66,7 +66,7 @@ end
 
 @assert find_first_invalid([1:25; 100]) == (100, 26)
 @assert find_first_invalid([1:25; 27; 100]) == (100, 27)
-@assert find_first_invalid(example, preamble_size = 5) == (127, 15)
+@assert find_first_invalid(example, preamble_size=5) == (127, 15)
 
 function part1(numbers)
     number, _ = find_first_invalid(numbers)
@@ -87,8 +87,8 @@ end
 @assert sum_until(1:10, 10) == [1:4;]
 @assert isnothing(sum_until(1:10, 100))
 
-function find_weak_sequence(numbers; preamble_size = 25)
-    number, pos = find_first_invalid(numbers, preamble_size = preamble_size)
+function find_weak_sequence(numbers; preamble_size=25)
+    number, pos = find_first_invalid(numbers, preamble_size=preamble_size)
     for (i, x) in enumerate(numbers)
         if i == pos
             break
@@ -100,18 +100,18 @@ function find_weak_sequence(numbers; preamble_size = 25)
     end
 end
 
-@assert find_weak_sequence(example, preamble_size = 5) == [15, 25, 47, 40]
+@assert find_weak_sequence(example, preamble_size=5) == [15, 25, 47, 40]
 
-function part2(numbers; preamble_size = 25)
-    weak_sequence = find_weak_sequence(numbers, preamble_size = preamble_size)
+function part2(numbers; preamble_size=25)
+    weak_sequence = find_weak_sequence(numbers, preamble_size=preamble_size)
     return minimum(weak_sequence) + maximum(weak_sequence)
 end
 
-@assert part2(example, preamble_size = 5) == 62
+@assert part2(example, preamble_size=5) == 62
 
 test = read_array(read("data/day-09.txt", String))
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 25918798
-@assert part2(test) == 3340942
+@assert result1 == 25918798
+@assert result2 == 3340942

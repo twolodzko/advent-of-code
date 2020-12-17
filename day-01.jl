@@ -2,7 +2,7 @@
 
 # find the two entries that sum to 2020 and then multiply those two numbers together
 
-function part1(list_of_numbers, total = 2020)
+function part1(list_of_numbers, total=2020)
     for (i, x) in enumerate(list_of_numbers)
         y = total - x
         if y in list_of_numbers[i+1:end]
@@ -31,12 +31,12 @@ end
 @assert part2(example) == 241861950
 
 function read_array(string::AbstractString)::Vector{Int}
-    return map(x -> parse(Int, x), split(string, '\n', keepempty = false))
+    return map(x -> parse(Int, x), split(string, '\n', keepempty=false))
 end
 
 test = read_array(read("data/day-01.txt", String))
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 326211
-@assert part2(test) == 131347190
+@assert result1 == 326211
+@assert result2 == 131347190

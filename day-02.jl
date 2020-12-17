@@ -23,7 +23,7 @@ end
 
 function part1(inputs)
     count = 0
-    for row in split(inputs, '\n', keepempty = false)
+    for row in split(inputs, '\n', keepempty=false)
         min, max, char, password = getpattern(row)
 
         num_found = sum(collect(password) .== char)
@@ -58,7 +58,7 @@ example = "
 
 function part2(inputs)
     count = 0
-    for row in split(inputs, '\n', keepempty = false)
+    for row in split(inputs, '\n', keepempty=false)
         i, j, char, password = getpattern(row)
 
         if xor(password[i] == char, password[j] == char)
@@ -71,8 +71,8 @@ end
 @assert part2(example) == 1
 
 test = read("data/day-02.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 660
-@assert part2(test) == 530
+@assert result1 == 660
+@assert result2 == 530

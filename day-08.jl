@@ -50,13 +50,13 @@ val(obj::Command) = obj.value
 
 function parser(string::AbstractString)
     program = Command[]
-    for row in split(string, '\n', keepempty = false)
+    for row in split(string, '\n', keepempty=false)
         push!(program, Command(row))
     end
     return program
 end
 
-function run_code(program::Vector{Command}, max_loops = 1000, verbose = false)
+function run_code(program::Vector{Command}, max_loops=1000, verbose=false)
     exec_count = zeros(Int, length(program))
     status = false
     accumulator = 0
@@ -135,7 +135,7 @@ function swap(command::Command)
     return Command(name, val(command))
 end
 
-function part2(code, verbose = false)
+function part2(code, verbose=false)
     program_orig = parser(code)
     command_names = reverse([cmd(command) for command in program_orig])
     start_search = 1
@@ -160,8 +160,8 @@ end
 @assert part2(example) == 8
 
 test = read("data/day-08.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 1832
-@assert part2(test) == 662
+@assert result1 == 1832
+@assert result2 == 662

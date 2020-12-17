@@ -25,7 +25,7 @@
 function code_to_int(code)
     code = replace(code, r"F|L" => '0')
     code = replace(code, r"B|R" => '1')
-    return parse(Int, code, base = 2)
+    return parse(Int, code, base=2)
 end
 
 @assert code_to_int("BFFFBBFRRR") == 567
@@ -36,7 +36,7 @@ end
 
 function part1(codes)
     highest = 0
-    for code in split(codes, '\n', keepempty = false)
+    for code in split(codes, '\n', keepempty=false)
         highest = max(highest, code_to_int(code))
     end
     return highest
@@ -58,14 +58,14 @@ end
 @assert find_missing([1, 2, 3, 4, 6, 7, 8]) == 4
 
 function part2(codes)
-    seat_numbers = sort([code_to_int(code) for code in split(codes, '\n', keepempty = false)])
+    seat_numbers = sort([code_to_int(code) for code in split(codes, '\n', keepempty=false)])
     idx = find_missing(seat_numbers)
     return seat_numbers[idx] + 1
 end
 
 test = read("data/day-05.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 913
-@assert part2(test) == 717
+@assert result1 == 913
+@assert result2 == 717

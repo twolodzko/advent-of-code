@@ -29,8 +29,8 @@ end
 iterate(grid::Grid, i...) = iterate(grid.coords, i...)
 length(grid::Grid) = length(grid.coords)
 
-function read_init(string::AbstractString, other_dims::Tuple{Vararg{Int}} = (1,))
-    rows = split(string, '\n', keepempty = false)
+function read_init(string::AbstractString, other_dims::Tuple{Vararg{Int}}=(1,))
+    rows = split(string, '\n', keepempty=false)
     coords = Coords[]
     for (i, row) in enumerate(rows)
         for (j, ch) in enumerate(collect(row))
@@ -86,7 +86,7 @@ function cycle!(grid::Grid)
     return grid
 end
 
-function boot!(init::Grid, num_cycles = 6)
+function boot!(init::Grid, num_cycles=6)
     for _ = 1:num_cycles
         cycle!(init)
     end
@@ -111,8 +111,8 @@ end
 @assert part2(example) == 848
 
 test = read("data/day-17.txt", String)
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
-@assert part1(test) == 304
-@assert part2(test) == 1868
+@assert result1 == 304
+@assert result2 == 1868

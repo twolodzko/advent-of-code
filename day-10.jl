@@ -145,8 +145,8 @@ end
 @assert part2(example2) == 19208
 
 test = read_array(read("data/day-10.txt", String))
-println("Part 1: $(part1(test))")
-println("Part 2: $(part2(test))")
+println("Part 1: $(result1 = part1(test))")
+println("Part 2: $(result2 = part2(test))")
 
 part1(test) == 2738
 part2(test) == 74049191673856
@@ -157,4 +157,4 @@ print("Example 1: ")
 print("Example 2: ")
 @time @assert part2(example2) == 19208
 print("Part 2:    ")
-@time @assert part2(test) == 74049191673856
+@time @assert result2 == 74049191673856
