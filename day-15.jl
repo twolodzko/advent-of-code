@@ -2,8 +2,8 @@
 
 example = "0,3,6"
 
-function parse_input(string)
-    return map(x -> parse(Int, x), split(string, ',', keepempty=false))
+function read_array(string::AbstractString)::Vector{Int}
+    return parse.(Int, split(string, ',', keepempty=false))
 end
 
 """
@@ -30,7 +30,7 @@ function memoize_sequence(starting_sequence, turns)
 end
 
 function part1(string, turns=2020)
-    starting_sequence = parse_input(string)
+    starting_sequence = read_array(string)
     return memoize_sequence(starting_sequence, turns)
 end
 

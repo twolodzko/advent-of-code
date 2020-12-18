@@ -30,7 +30,7 @@ nearby tickets:
 split_lines(str) = split(str, '\n', keepempty=false)
 
 function parse_range(string::AbstractString)::AbstractRange
-    from, to = map(d -> parse(Int, d), split(strip(string), '-', keepempty=false))
+    from, to = parse.(Int, split(strip(string), '-', keepempty=false))
     return from:to
 end
 
@@ -51,7 +51,7 @@ end
 @assert parse_rule("bar: 6-11 or 33-44 or 55-66 ") == ("bar", [6:11, 33:44, 55:66])
 
 function parse_ticket(string::AbstractString)
-    return map(d -> parse(Int, d), split(string, ',', keepempty=false))
+    return parse.(Int, split(string, ',', keepempty=false))
 end
 
 function parse_input(input::AbstractString)

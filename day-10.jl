@@ -12,7 +12,7 @@
 # Treat the charging outlet near your seat as having an effective joltage rating of 0.
 
 function read_array(string::AbstractString)::Vector{Int}
-    return map(x -> parse(Int, x), split(string, '\n', keepempty=false))
+    return parse.(Int, split(string, '\n', keepempty=false))
 end
 
 example1 = read_array("

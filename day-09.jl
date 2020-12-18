@@ -30,7 +30,7 @@ end
 @assert !is_xmas_seq([1:25; 2])
 
 function read_array(string::AbstractString)::Vector{Int}
-    return map(x -> parse(Int, x), filter(x -> x != "", split(string, '\n')))
+    return parse.(Int, split(string, '\n', keepempty=false))
 end
 
 example = read_array("
