@@ -147,7 +147,7 @@ function part2(code, verbose=false)
         idx = findfirst(x -> x in (:nop, :jmp), command_names[start_search:end])
         idx += start_search - 1
         # because we search starting from the back
-        program[end-idx+1] = swap(program_orig[end-idx+1])
+        program[end - idx + 1] = swap(program_orig[end - idx + 1])
         accumulator, success = run_code(program, 2)
         start_search = idx + 1
 

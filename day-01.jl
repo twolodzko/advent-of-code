@@ -5,7 +5,7 @@
 function part1(list_of_numbers, total=2020)
     for (i, x) in enumerate(list_of_numbers)
         y = total - x
-        if y in list_of_numbers[i+1:end]
+        if y in list_of_numbers[(i + 1):end]
             return x * y
         end
     end
@@ -20,7 +20,7 @@ example = [1721, 979, 366, 299, 675, 1456]
 function part2(list_of_numbers)
     for (i, x) in enumerate(list_of_numbers)
         partial = 2020 - x
-        tmp = filter(y -> y <= partial, list_of_numbers[i+1:end])
+        tmp = filter(y -> y <= partial, list_of_numbers[(i + 1):end])
         y = part1(tmp, partial)
         if !isnothing(y)
             return x * y

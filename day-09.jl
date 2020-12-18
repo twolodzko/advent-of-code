@@ -8,14 +8,14 @@
 
 function is_xmas_seq(numbers; preamble_size=25)
     number = numbers[end]
-    preamble = sort(numbers[(end-preamble_size):(end-1)], rev=true)
+    preamble = sort(numbers[(end - preamble_size):(end - 1)], rev=true)
     @assert length(preamble) == preamble_size
 
     for (i, x) in enumerate(preamble)
         if x > number
             continue
         end
-        if (number - x) in preamble[(i+1):end]
+        if (number - x) in preamble[(i + 1):end]
             return true
         end
     end
@@ -57,7 +57,7 @@ example = read_array("
 ")
 
 function find_first_invalid(numbers; preamble_size=25)
-    for pos = (preamble_size+1):length(numbers)
+    for pos = (preamble_size + 1):length(numbers)
         if !is_xmas_seq(numbers[1:pos], preamble_size=preamble_size)
             return numbers[pos], pos
         end
@@ -93,7 +93,7 @@ function find_weak_sequence(numbers; preamble_size=25)
         if i == pos
             break
         end
-        weak_sequence = sum_until(numbers[i:(pos-1)], number)
+        weak_sequence = sum_until(numbers[i:(pos - 1)], number)
         if !isnothing(weak_sequence)
             return weak_sequence
         end

@@ -131,7 +131,7 @@ result:  000000000000000000000000000000X1101X
 function apply_xmask(bits::Binary, mask::BitMask)::BitMask
     @assert length(bits) == length(mask)
     bits = convert(BitMask, bits)
-    bits[mask.==true] .= true
+    bits[mask .== true] .= true
     bits[isnothing.(mask)] .= nothing
     return bits
 end

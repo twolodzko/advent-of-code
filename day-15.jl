@@ -14,16 +14,16 @@ function memoize_sequence(starting_sequence, turns)
     n = max(turns + 1, maximum(starting_sequence))
     memory = zeros(Int32, n) .- (2 * n)
 
-    for (i, prev) in enumerate(starting_sequence[1:(end-1)])
-        memory[prev+1] = i
+    for (i, prev) in enumerate(starting_sequence[1:(end - 1)])
+        memory[prev + 1] = i
     end
 
     prev = starting_sequence[end]
     pos = 0
 
-    for i = length(starting_sequence):(turns-1)
-        pos = memory[prev+1]
-        memory[prev+1] = i
+    for i = length(starting_sequence):(turns - 1)
+        pos = memory[prev + 1]
+        memory[prev + 1] = i
         prev = pos > 0 ? i - pos : 0
     end
     return prev

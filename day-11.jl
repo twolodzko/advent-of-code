@@ -40,11 +40,11 @@ end
 function count_adjecent_occupied_seats(layout, x, y)
     n, k = size(layout)
     occupied_seats = 0
-    for i = (x-1):(x+1)
+    for i = (x - 1):(x + 1)
         if i < 1 || i > n
             continue
         end
-        for j = (y-1):(y+1)
+        for j = (y - 1):(y + 1)
             if i == x && j == y || j < 1 || j > k
                 continue
             end

@@ -54,7 +54,7 @@ function part2(input)
     _, bus_numbers = read_input(input)
 
     nonmissing = map(x -> !isnothing(x), bus_numbers)
-    indexes = collect(0:length(bus_numbers)-1)
+    indexes = collect(0:(length(bus_numbers) - 1))
     indexes = indexes[nonmissing]
     bus_numbers = bus_numbers[nonmissing]
     reminders = maximum(indexes) .- indexes
