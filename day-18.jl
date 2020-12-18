@@ -15,9 +15,9 @@ function parse_expression(chars::Vector{Char})
                 push!(expression, digit)
             end
         elseif ch == '*'
-            push!(expression, *)
+            push!(expression, :*)
         elseif ch == '+'
-            push!(expression, +)
+            push!(expression, :+)
         elseif ch == '('
             partial, chars = parse_expression(chars)
             push!(expression, partial)
@@ -35,15 +35,15 @@ function parse_expression(string::AbstractString)
     return expression
 end
 
-@assert parse_expression("1 + 2") == [1, +, 2]
-@assert parse_expression("1 + (2 * 3)") == [1, +, [2, *, 3]]
+@assert parse_expression("1 + 2") == [1, :+, 2]
+@assert parse_expression("1 + (2 * 3)") == [1, :+, [2, :*, 3]]
 
 function evaluate(expression)
     result = 0
-    op = +
+    op = (+)
     for x in expression
-        if isa(x, Function)
-            op = x
+        if isa(x, Symbol)
+            op = (x == :+) ? (+) : (*)
             continue
         elseif isa(x, Vector)
             x = evaluate(x)
@@ -74,13 +74,13 @@ function bracket(expr)
             x = bracket(x)
         end
 
-        if x == (+)
+        if x == :+
             y = expr[i + 1]
             if isa(y, Vector)
                 y = bracket(y)
             end
 
-            new_expr[end] = [new_expr[end], +, y]
+            new_expr[end] = [new_expr[end], :+, y]
             i += 2
         else
             push!(new_expr, x)
@@ -90,10 +90,10 @@ function bracket(expr)
     return length(new_expr) == 1 ? first(new_expr) : new_expr
 end
 
-@assert bracket([2, *, 3, +, 4]) == [2, *, [3, +, 4]]
-@assert bracket([2, *, [3, *, 4], +, 5]) == [2, *, [[3, *, 4], +, 5]]
-@assert bracket([2, +, 3, +, 4, *, 5]) == [[[2, +, 3], +, 4], *, 5]
-@assert bracket([5, +, [8, *, 3, +, 9, +, 3, *, 4, *, 3]]) == [5, +, [8, *, [[3, +, 9], +, 3], *, 4, *, 3]]
+@assert bracket([2, :*, 3, :+, 4]) == [2, :*, [3, :+, 4]]
+@assert bracket([2, :*, [3, :*, 4], :+, 5]) == [2, :*, [[3, :*, 4], :+, 5]]
+@assert bracket([2, :+, 3, :+, 4, :*, 5]) == [[[2, :+, 3], :+, 4], :*, 5]
+@assert bracket([5, :+, [8, :*, 3, :+, 9, :+, 3, :*, 4, :*, 3]]) == [5, :+, [8, :*, [[3, :+, 9], :+, 3], :*, 4, :*, 3]]
 
 parse_bracket_eval(expr) = evaluate(bracket(parse_expression(expr)))
 
