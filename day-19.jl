@@ -22,11 +22,11 @@ function preprocess_rule(rule)
     end
 
     if '|' in rule
-        rule = join(map(s -> "($s)", split(rule, '|')), '|')
+        rule = join(map(s -> "(?:$s)", split(rule, '|')), '|')
     end
     rule = replace(rule, r" +" => " ")
-    rule = replace(rule, r"(\d+)" => s"(\1)")
-    rule = "($rule)"
+    rule = replace(rule, r"(\d+)" => s"(?:\1)")
+    rule = "(?:$rule)"
     return rule
 end
 
@@ -46,7 +46,7 @@ function reduce_rule!(rules, name)
         if key == name
             continue
         end
-        rules[key] = replace(rule, "($name)" => "($replacement)")
+        rules[key] = replace(rule, "(?:$name)" => "(?:$replacement)")
         #rules[key] = replace(rules[key], r"\(\s+([a-z]+)\s+\)" => s"\1")
     end
 
@@ -71,12 +71,8 @@ end
 
 function remove_extra_characters(str)
     str = replace(str, " " => "")
-    str = replace(str, r"\(([a-z]+)\)\(([a-z]+)\)" => s"\1\2")
-    str = replace(str, r"([a-z]+)\(([a-z]+)\)" => s"\1\2")
-    str = replace(str, r"\(([a-z]+)\)([a-z]+)" => s"\1\2")
-    str = replace(str, r"\((\([a-z]+\))\)" => s"\1")
-    str = replace(str, r"(?<!\|)\(([a-z]+)\)(?!\|)" => s"\1")
-    str = replace(str, r"\((?!\?)" => "(?:")
+    str = replace(str, r"\(?:([a-z]+)\)\(?:([a-z]+)\)" => s"\1\2")
+    str = replace(str, r"(?<!\|)\(\?:([a-z]+)\)(?!\|)" => s"\1")
     return str
 end
 
@@ -179,8 +175,8 @@ function part2(input)
     # 8: 42 | 42 8
     # 11: 42 31 | 42 11 31
 
-    rules["8"] = "((42)+)"
-    rules["11"] = "((42)(?R)?(31))"
+    rules["8"] = "(?:(?:42)+)"
+    rules["11"] = "((?:42)(?1)?(?:31))"
     
     for key in ["31", "42", "8", "11"]
         reduce_rule!(rules, key)
@@ -199,4 +195,4 @@ println("Part 1: $(result1 = part1(test))")
 println("Part 2: $(result2 = part2(test))")
 
 @assert result1 == 168
-@assert 273 < result2 < 285
+@assert result2 == 277
