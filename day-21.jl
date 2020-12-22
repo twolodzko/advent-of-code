@@ -59,39 +59,55 @@ end
 
 @assert part1(example) == 5
 
-function part2(input)
-    food_list = parse_input(input)
+function map_candidates(food_list)
     allergen_names, allergen_counts, ingredient_names, ingredient_counts = count_relations(food_list)
 
-    keep_indexes = ones(Bool, length(ingredient_names))
-    for (i, ingredient) in enumerate(ingredient_names)
-        possible_allergens = allergen_names[allergen_counts[i, :] .== maximum(allergen_counts, dims=1)[:]]
-        if isempty(possible_allergens)
-            keep_indexes[i] = false
-        end
-    end
-    ingredient_counts = ingredient_counts[keep_indexes]
-    ingredient_names = ingredient_names[keep_indexes]
-    allergen_counts = allergen_counts[keep_indexes, :]
+    candidates = Dict()
+    best = maximum(allergen_counts, dims=1)[:]
+    for (i, row) in enumerate(eachrow(allergen_counts))
+        for (j, v) in enumerate(best)
+            if row[j] == best[j]
+                allergen = allergen_names[j]
+                ingredient = ingredient_names[i]
 
-    food_allergens = Dict()
-    while !all(allergen_counts .== 0)
-        j = argmax(maximum(allergen_counts, dims=1)[:])
-        for i in sortperm(allergen_counts[:, j], rev=true)
-            if allergen_counts[i, j] != maximum(allergen_counts[i, :])
-                # there is a better candidate for this row
-                continue
+                if allergen in keys(candidates)
+                    push!(candidates[allergen], ingredient)
+                else
+                    candidates[allergen] = Set([ingredient])
+                end
             end
-
-            food_allergens[ingredient_names[i]] = allergen_names[j]
-            allergen_counts[i, :] .= 0
-            allergen_counts[:, j] .= 0
-            break
         end
     end
+    return candidates
+end
 
-    sorted = sort(collect(food_allergens), by=pair -> pair[2])
-    return join([food for (food, _) in sorted], ',')
+function reduce_candidates(candidates)
+    matches = Dict()
+
+    while !isempty(candidates)
+        for (allergen, ingredients) in candidates
+            if length(ingredients) == 1
+                ingredient = first(ingredients)
+                matches[allergen] = ingredient
+                pop!(candidates, allergen)
+                for (k, v) in candidates
+                    if ingredient in v
+                        pop!(v, ingredient)
+                    end
+                end
+                break
+            end
+        end
+    end
+    return matches
+end
+
+function part2(input)
+    food_list = parse_input(input)
+    candidates = map_candidates(food_list)
+    allergens = reduce_candidates(candidates)
+    sorted = sort(collect(allergens), by=first)
+    return join([food for (_, food) in sorted], ',')
 end
 
 @assert part2(example) == "mxmxvkd,sqjhc,fvjkl"
@@ -101,6 +117,4 @@ println("Part 1: $(result1 = part1(test))")
 println("Part 2: $(result2 = part2(test))")
 
 @assert result1 == 2412
-@assert result2 != "mfp,mhnrqp,dcvrf,mgvfmvp,dvkbjh,nhdjth,bcjz,hcdchl"
-@assert result2 != "mfp,dvkbjh,hcdchl,mgvfmvp,nhdjth,dcvrf"
-@assert result2 != "mfp,mgvfmvp,bcjz,hcdchl,dvkbjh,dcvrf,nhdjth,mhnrqp"
+@assert result2 == "mfp,mgvfmvp,nhdjth,hcdchl,dvkbjh,dcvrf,bcjz,mhnrqp"
