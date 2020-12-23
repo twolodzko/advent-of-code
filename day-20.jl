@@ -113,47 +113,39 @@ end
 """
 function collect_image(matches, tiles)
     n = Int(sqrt(length(matches)))
-    out = Array{Any,2}(undef, n, n)
+    grid = Array{Any,2}(undef, n, n)
+    tile_id = nothing
 
     for (id, paired) in matches
-        sides = sort(map(x -> x[2] for x in paired))
-        if all(sides .== [2, 3])
-            out[1, 1] = id
-        end
-        break
-    end
-
-    i, j = 1, 1
-    while (i < n) && (j < n)
-        if j < n
-            id = out[i,j]
-
-            j += 1
-        else
-
-            j = 1
-            i += 1
+        sides = sort([x[2] for x in paired])
+        if length(sides) == 2 && all(sides .== [2, 3])
+            grid[1, 1] = copy(tiles[id])
+            tile_id = id
+            break
         end
     end
-    return out
+
+
+    return grid
 end
 
-function find_rotation(tile, side, neighbour)
-    pattern = get_side(tile, side)
-    neighbour_side = mod1(side + 2, 4)
-    for transform in [
-        identity,
-        x -> flip(x, dims=1),
-        x -> flip(x, dims=2),
-        x -> flip(x, dims=(1, 2)),
-        x -> collect(x'),
-        x -> flip(collect(x'), dims=1),
-        x -> flip(collect(x'), dims=2),
-        x -> flip(collect(x'), dims=(1, 2)),
-    ]
-        transformed = transform(neighbour)
-        if all(pattern .== get_side(transformed, neighbour_side))
-            return transformed
+function brute_force_match(pattern, matches, tiles)
+    for (id, _) in matches
+        candidate = tiles[id]
+        for transform in [
+            identity,
+            x -> flip(x, dims=1),
+            x -> flip(x, dims=2),
+            x -> flip(x, dims=(1, 2)),
+            x -> collect(x'),
+            x -> flip(collect(x'), dims=1),
+            x -> flip(collect(x'), dims=2),
+            x -> flip(collect(x'), dims=(1, 2)),
+        ]
+            transformed = transform(candidate)
+            if all(pattern .== get_side(transformed, 4))
+                return id, transformed
+            end
         end
     end
 end
