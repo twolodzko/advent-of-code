@@ -8,7 +8,7 @@ movefirstback!(arr) = push!(arr, popfirst!(arr))
 
 @assert all(movefirstback!([1, 2, 3, 4]) .== [2, 3, 4, 1])
 
-function move(cups, pos; verbose=false)
+function move(cups, pos, max; verbose=false)
     verbose && println("cups: ", join(map(x -> x[1] == pos ? "($(x[2]))" : "$(x[2]) ", enumerate(cups)), " "))
 
     current = cups[pos]
@@ -24,9 +24,10 @@ function move(cups, pos; verbose=false)
 
     # pick destination cup
     destination = current - 1
-    while !(destination in cups)
+    destination = destination < 1 ? max : destination
+    while destination in picked
         destination -= 1
-        destination = destination < 1 ? maximum(cups) : destination
+        destination = destination < 1 ? max : destination
     end
     verbose && println("destination: ", destination)
 
@@ -37,25 +38,26 @@ function move(cups, pos; verbose=false)
     end
 
     # rotate to the previous position
-    while (findfirst(cups .== current) - pos) > 0
+    while findnext(cups .== current, pos) > pos
         movefirstback!(cups)
     end
 
     return cups
 end
 
-@assert all(move([3, 8, 9, 1, 2, 5, 4, 6, 7], 1) .== [3, 2, 8, 9, 1, 5, 4, 6, 7])
-@assert all(move([3, 2, 5, 4, 6, 7, 8, 9, 1], 3) .== [7, 2, 5, 8, 9, 1, 3, 4, 6])
-@assert all(move([7, 4, 1, 5, 8, 3, 9, 2, 6], 9) .== [5, 7, 4, 1, 8, 3, 9, 2, 6])
+@assert all(move([3, 8, 9, 1, 2, 5, 4, 6, 7], 1, 9) .== [3, 2, 8, 9, 1, 5, 4, 6, 7])
+@assert all(move([3, 2, 5, 4, 6, 7, 8, 9, 1], 3, 9) .== [7, 2, 5, 8, 9, 1, 3, 4, 6])
+@assert all(move([7, 4, 1, 5, 8, 3, 9, 2, 6], 9, 9) .== [5, 7, 4, 1, 8, 3, 9, 2, 6])
 
 function part1(input; rounds=100, verbose=false)
     cups = parse.(Int, split(input, ""))
     n = length(cups)
+    max = maximum(cups)
 
     for i in 1:rounds
         verbose && println("-- move $i --")
         pos = mod1(i, n)
-        cups = move(cups, pos, verbose=verbose)
+        cups = move(cups, pos, max, verbose=verbose)
         verbose && println()
     end
 
@@ -69,8 +71,8 @@ end
 
 function part2(input; rounds=10_000_000, size=1_000_000, verbose=false)
     cups = parse.(Int, split(input, ""))
-    biggest = maximum(cups)
-    for x in (biggest + 1):size
+    max = maximum(cups)
+    for x in (max + 1):size
         push!(cups, x)
     end
     n = length(cups)
@@ -78,7 +80,7 @@ function part2(input; rounds=10_000_000, size=1_000_000, verbose=false)
     @showprogress for i in 1:rounds
         verbose && println("-- move $i --")
         pos = mod1(i, n)
-        cups = move(cups, pos, verbose=verbose)
+        cups = move(cups, pos, size, verbose=verbose)
         verbose && println()
     end
 
