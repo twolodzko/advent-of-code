@@ -1,9 +1,24 @@
-import Base: peek
+import Base: ==, peek, last
 
 mutable struct LinkedList
     value::Any
     next::Union{LinkedList,Nothing}
 end
+
+function (==)(x::LinkedList, y::LinkedList)
+    while !isnothing(x.next) && !isnothing(y.next)
+        if x.value != y.value
+            return false
+        end
+        x = x.next
+        y = y.next
+    end
+    return x.value == y.value && isnothing(x.next) && isnothing(y.next)
+end
+
+@assert LinkedList(1, LinkedList(2, nothing)) == LinkedList(1, LinkedList(2, nothing))
+@assert LinkedList(1, LinkedList(2, nothing)) != LinkedList(1, LinkedList(3, nothing))
+@assert LinkedList(1, LinkedList(2, nothing)) != LinkedList(2, LinkedList(2, nothing))
 
 function peek(list::LinkedList, n::Integer)
     out = Array{Int}(undef, n)
@@ -16,24 +31,40 @@ end
 
 @assert all(peek(LinkedList(1, LinkedList(2, LinkedList(3, LinkedList(4, nothing)))), 2) .== [1, 2])
 
-function insertnext!(list::LinkedList, arr)
+function insertafter!(list::LinkedList, index, items::Vector)
     head = list
-    tail = list.next
-    for x in arr
-        head.next = LinkedList(x, nothing)
+    while head.value != index
         head = head.next
     end
-    head.next = tail
+
+    tail = head.next
+    for x in items
+        head.next = LinkedList(x, tail)
+        head = head.next
+    end
+
     return list
 end
 
-function cycle_length(list::LinkedList)
-    len = 0
-    start = list.value
-    list = list.next
-    while list.value != start
-        len += 1
-        list = list.next
+@assert insertafter!(LinkedList(1, LinkedList(2, LinkedList(3, nothing))), 2, [7, 8]) ==
+    LinkedList(1, LinkedList(2, LinkedList(7, LinkedList(8, LinkedList(3, nothing)))))
+
+function tolinkedlist(arr::Vector)
+    list = LinkedList(arr[end], nothing)
+    for x in reverse(arr)[2:end]
+        list = LinkedList(x, list)
     end
-    return len
+    return list
 end
+
+@assert tolinkedlist([1, 2, 3]) == LinkedList(1, LinkedList(2, LinkedList(3, nothing)))
+
+function last(list::LinkedList)
+    head = list
+    while !isnothing(head.next)
+        head = head.next
+    end
+    return head
+end
+
+@assert last(LinkedList(1, LinkedList(2, LinkedList(3, nothing)))) == LinkedList(3, nothing)
