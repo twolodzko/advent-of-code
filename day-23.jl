@@ -12,6 +12,13 @@ function play(cups, rounds::Int)
     head = tolinkedlist(cups)
     tail = last(head)
 
+    # Without storing the address book with pointers to the
+    # nodes, this code is painfully slow, significantly slower
+    # than the naive implementation I used to solve the problem.
+    # The trick does the job, though it's not my idea, it is
+    # borrowed from the code mentioned on Julia's Zulip by
+    # Nicolas Viennot (2020-12-23 17:50).
+
     pointers = Array{LinkedList}(undef, length(cups))
     pos = head
     while !isnothing(pos)
