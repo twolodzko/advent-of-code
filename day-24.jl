@@ -53,4 +53,13 @@ function part1(input)
     return 
 end
 
-@assert part1("example") == 10
+@assert part1(example) == 10
+
+
+
+# test = 
+# println("Part 1: $(result1 = part1(test))")
+# println("Part 2: $(result2 = part2(test))")
+
+# @assert result1 == 
+# @assert result2 == 

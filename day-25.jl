@@ -1,6 +1,11 @@
 # https://adventofcode.com/2020/day/25
 
-const CONST = 20201227
+"""
+Single transformation step
+"""
+function transform(value::Integer, subject_number::Integer)
+    return rem(value * subject_number, 20201227)
+end
 
 """
 Using the `subject_number` and `loop_size`, calculate the `key`
@@ -8,8 +13,7 @@ Using the `subject_number` and `loop_size`, calculate the `key`
 function get_key(subject_number::Integer, loop_size::Integer)
     value = 1
     for _ in 1:loop_size
-        value *= subject_number
-        value = rem(value, CONST)
+        value = transform(value, subject_number)
     end
     return value
 end
@@ -29,8 +33,7 @@ function get_loop_size(subject_number::Integer, public_key::Integer)
     value = 1
     while value != public_key
         loop_size += 1
-        value *= subject_number
-        value = rem(value, CONST)
+        value = transform(value, subject_number)
     end
     return loop_size
 end
