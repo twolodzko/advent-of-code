@@ -11,6 +11,14 @@ function play(cups, rounds::Int)
 
     head = tolinkedlist(cups)
     tail = last(head)
+
+    pointers = Array{LinkedList}(undef, length(cups))
+    pos = head
+    while !isnothing(pos)
+        pointers[pos.value] = pos
+        pos = pos.next
+    end
+
     tail.next = head
 
     p = Progress(rounds)
@@ -26,8 +34,14 @@ function play(cups, rounds::Int)
             destination -= 1
             destination = destination < 1 ? max : destination
         end
-
-        insertafter!(head, destination, picked)
+        
+        pos = pointers[destination]
+        tail = pos.next
+        for x in picked
+            pos.next = LinkedList(x, tail)
+            pointers[x] = pos.next
+            pos = pos.next
+        end
 
         head = head.next
         next!(p)
@@ -71,7 +85,7 @@ end
 
 test = "784235916"
 println("Part 1: $(result1 = part1(test))")
-# println("Part 2: $(result2 = part2(test))")
+println("Part 2: $(result2 = part2(test))")
 
 @assert result1 == "53248976"
-# @assert result2 ==
+@assert result2 == 418819514477
