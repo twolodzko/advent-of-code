@@ -4,64 +4,69 @@ using ProgressMeter
 
 example = "389125467"
 
-movefirstback!(arr) = push!(arr, popfirst!(arr))
+include("LinkedList.jl")
 
-@assert all(movefirstback!([1, 2, 3, 4]) .== [2, 3, 4, 1])
-
-function move(cups, pos, max; verbose=false)
-    verbose && println("cups: ", join(map(x -> x[1] == pos ? "($(x[2]))" : "$(x[2]) ", enumerate(cups)), " "))
-
-    current = cups[pos]
-
-    # pick cups
-    picked = Int[]
-    i = pos + 1
-    for _ in 1:3
-        i = i > length(cups) ? 1 : i
-        push!(picked, popat!(cups, i))
-    end
-    verbose && println("pick up: ", join(picked, ", "))
-
-    # pick destination cup
-    destination = current - 1
-    destination = destination < 1 ? max : destination
-    while destination in picked
-        destination -= 1
-        destination = destination < 1 ? max : destination
-    end
-    verbose && println("destination: ", destination)
-
-    # insert picked cups back
-    d = findfirst(cups .== destination)
-    for i in 1:3
-        insert!(cups, d + i, picked[i])
-    end
-
-    # rotate to the previous position
-    while findnext(cups .== current, pos) > pos
-        movefirstback!(cups)
-    end
-
-    return cups
-end
-
-@assert all(move([3, 8, 9, 1, 2, 5, 4, 6, 7], 1, 9) .== [3, 2, 8, 9, 1, 5, 4, 6, 7])
-@assert all(move([3, 2, 5, 4, 6, 7, 8, 9, 1], 3, 9) .== [7, 2, 5, 8, 9, 1, 3, 4, 6])
-@assert all(move([7, 4, 1, 5, 8, 3, 9, 2, 6], 9, 9) .== [5, 7, 4, 1, 8, 3, 9, 2, 6])
-
-function part1(input; rounds=100, verbose=false)
-    cups = parse.(Int, split(input, ""))
-    n = length(cups)
+function play(cups, rounds::Int)
     max = maximum(cups)
 
-    for i in 1:rounds
-        verbose && println("-- move $i --")
-        pos = mod1(i, n)
-        cups = move(cups, pos, max, verbose=verbose)
-        verbose && println()
+    head = tolinkedlist(cups)
+    tail = last(head)
+
+    # Without storing the address book with pointers to the
+    # nodes, this code is painfully slow, significantly slower
+    # than the naive implementation I used to solve the problem.
+    # The trick does the job, though it's not my idea, it is
+    # borrowed from the code mentioned on Julia's Zulip by
+    # Nicolas Viennot (2020-12-23 17:50).
+
+    pointers = Array{LinkedList}(undef, length(cups))
+    pos = head
+    while !isnothing(pos)
+        pointers[pos.value] = pos
+        pos = pos.next
     end
 
+    tail.next = head
+
+    p = Progress(rounds)
+    for i in 1:rounds
+        current = head.value
+
+        picked = peek(head.next, 3)
+        head.next = head.next.next.next.next
+
+        destination = current - 1
+        destination = destination < 1 ? max : destination
+        while destination in picked
+            destination -= 1
+            destination = destination < 1 ? max : destination
+        end
+        
+        pos = pointers[destination]
+        tail = pos.next
+        for x in picked
+            pos.next = LinkedList(x, tail)
+            pointers[x] = pos.next
+            pos = pos.next
+        end
+
+        head = head.next
+        next!(p)
+    end
+
+    n = length(cups)
+    return peek(head, n + (n - 1))[n:(n + n - 1)]
+end
+
+@assert all(play(Int[3, 8, 9, 1, 2, 5, 4, 6, 7], 10) .== [5, 8, 3, 7, 4, 1, 9, 2, 6])
+
+function part1(input; rounds::Integer=100, verbose=false)
+    cups = parse.(Int, split(input, ""))
+
+    cups = play(cups, rounds)
+
     pos = findfirst(cups .== 1)
+    n = length(cups)
     idx = [mod1(pos + i, n) for i in 1:(n - 1)]
     return join(cups[idx])
 end
@@ -77,22 +82,17 @@ function part2(input; rounds=10_000_000, size=1_000_000, verbose=false)
     end
     n = length(cups)
 
-    @showprogress for i in 1:rounds
-        verbose && println("-- move $i --")
-        pos = mod1(i, n)
-        cups = move(cups, pos, size, verbose=verbose)
-        verbose && println()
-    end
+    cups = play(cups, rounds)
 
     pos = findfirst(cups .== 1)
     return (*)([cups[mod1(pos + i, n)] for i in 1:2]...)
 end
 
-# @assert part2(example) == 149245887792
+@assert part2(example) == 149245887792
 
 test = "784235916"
 println("Part 1: $(result1 = part1(test))")
 println("Part 2: $(result2 = part2(test))")
 
 @assert result1 == "53248976"
-# @assert result2 ==
+@assert result2 == 418819514477
