@@ -242,3 +242,4 @@ println("Part 2: $(result2 = part2(test))")
 
 @assert result1 == 2238
 @assert result2 == 2013
+
