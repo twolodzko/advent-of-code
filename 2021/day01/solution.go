@@ -26,10 +26,7 @@ func readFile(filename string) ([]int, error) {
 		}
 		arr = append(arr, i)
 	}
-
-	if err := scanner.Err(); err != nil {
-		return arr, err
-	}
+	err = scanner.Err()
 	return arr, err
 }
 
@@ -88,6 +85,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	result1 := countIncreases(arr)
 	fmt.Printf("Puzzle 1: %v\n", result1)
 
