@@ -46,20 +46,30 @@ func parse(row string) (Row, error) {
 	return Row{strings.Fields(fields[0]), strings.Fields(fields[1])}, nil
 }
 
-func simpleMatches(rows []Row) int {
+func obviousCandidates(words []string) (map[int]string, int) {
 	var lengths = map[int]int{
 		2: 1,
 		4: 4,
 		3: 7,
 		7: 8,
 	}
+	candidates := make(map[int]string)
+	total := 0
+	for _, field := range words {
+		n := len(field)
+		if digit, ok := lengths[n]; ok {
+			candidates[digit] = field
+			total += 1
+		}
+	}
+	return candidates, total
+}
+
+func simpleMatches(rows []Row) int {
 	total := 0
 	for _, row := range rows {
-		for _, field := range row.output {
-			if _, ok := lengths[len(field)]; ok {
-				total += 1
-			}
-		}
+		_, count := obviousCandidates(row.output)
+		total += count
 	}
 	return total
 }
@@ -85,61 +95,106 @@ func uniqueWords(row Row) []string {
 	return out
 }
 
-type Counter struct {
-	counts map[rune]int
-}
-
-func newCounter() *Counter {
-	counts := make(map[rune]int)
-	return &Counter{counts}
-}
-
-func (c *Counter) Add(v rune) {
-	if _, ok := c.counts[v]; ok {
-		c.counts[v] += 1
-	} else {
-		c.counts[v] = 1
-	}
-}
-
-func countChars(words []string) *Counter {
-	counter := newCounter()
-	for _, word := range words {
-		for _, r := range word {
-			counter.Add(r)
+func includes(s string, v rune) bool {
+	for _, r := range s {
+		if r == v {
+			return true
 		}
 	}
-	return counter
+	return false
 }
 
-func referenceCounts() map[rune]int {
-	reference := countChars([]string{
-		"abcefg",
-		"cf",
-		"acdeg",
-		"acdfg",
-		"bcdf",
-		"abdfg",
-		"abdefg",
-		"acf",
-		"abcdefg",
-		"abcdf",
-	})
-	return reference.counts
+func intersection(a, b string) []rune {
+	var common []rune
+	for _, r := range b {
+		if includes(a, r) {
+			common = append(common, r)
+		}
+	}
+	return common
+}
+
+func remove(arr []string, key string) []string {
+	for i, x := range arr {
+		if x == key {
+			switch i {
+			case 0:
+				return arr[1:]
+			case len(arr) - 1:
+				return arr[:len(arr)-1]
+			default:
+				return append(arr[:i], arr[i+1:]...)
+			}
+		}
+	}
+	return arr
 }
 
 func lifeSupportRating(row Row) int {
 	words := uniqueWords(row)
-	fmt.Println(words)
-	reference := referenceCounts()
-	for k, v := range reference {
-		fmt.Printf("%q => %d\n", k, v)
+
+	// 2, 4, 7, 8
+	candidates, _ := obviousCandidates(words)
+	for _, c := range candidates {
+		words = remove(words, c)
 	}
-	fmt.Println("=========")
-	counter := countChars(words)
-	for k, v := range counter.counts {
-		fmt.Printf("%q => %d\n", k, v)
+
+	// 9
+	for i := 0; i < len(words); i++ {
+		w := words[i]
+		c, ok := candidates[4]
+		if ok && len(intersection(c, w)) == 4 {
+			candidates[9] = w
+			words = remove(words, w)
+		}
 	}
+
+	// 0
+	for i := 0; i < len(words); i++ {
+		w := words[i]
+		if len(intersection(candidates[8], w)) == 6 && len(intersection(candidates[1], w)) == 2 {
+			candidates[0] = w
+			words = remove(words, w)
+		}
+	}
+
+	// 6
+	for i := 0; i < len(words); i++ {
+		w := words[i]
+		if len(w) == 6 {
+			candidates[6] = w
+			words = remove(words, w)
+		}
+	}
+
+	// 3
+	for i := 0; i < len(words); i++ {
+		w := words[i]
+		if len(intersection(candidates[8], w)) == 5 && len(intersection(candidates[1], w)) == 2 {
+			candidates[3] = w
+			words = remove(words, w)
+		}
+	}
+
+	// 6
+	for i := 0; i < len(words); i++ {
+		w := words[i]
+		c, ok := candidates[4]
+		if ok && len(intersection(c, w)) == 2 {
+			candidates[6] = w
+			words = remove(words, w)
+		}
+	}
+
+	fmt.Println(candidates)
+
+	if len(words) > 1 {
+		log.Fatalf("invalid input: %v", words)
+	}
+
+	candidates[5] = words[0]
+
+	fmt.Println(candidates)
 	return -1
 }
 
