@@ -46,109 +46,20 @@ func parse(row string) (Row, error) {
 	return Row{strings.Fields(fields[0]), strings.Fields(fields[1])}, nil
 }
 
-type Digit struct {
-	value    int
-	segments []rune
-}
-
-func newDigit(digit int, str string) *Digit {
-	runes := []rune(str)
-	return &Digit{digit, runes}
-}
-
-func (d *Digit) numSegments() int {
-	return len(d.segments)
-}
-
-func (d *Digit) isUsed(segment rune) bool {
-	for _, r := range d.segments {
-		if segment == r {
-			return true
-		}
+func findObviousCandidates(fields []string) []int {
+	var lengths = map[int]int{
+		2: 1,
+		4: 4,
+		3: 7,
+		7: 8,
 	}
-	return false
-}
-
-func (d *Digit) String() string {
-	return fmt.Sprintf("Digit(%d)", d.value)
-}
-
-func (d *Digit) print() {
-	var str, display string
-	str += fmt.Sprintf("\n%d:\n", d.value)
-	for _, segment := range "abcdefg" {
-		display = string(segment)
-		if !d.isUsed(segment) {
-			display = " "
-		}
-		switch segment {
-		case 'a', 'd', 'g':
-			str += fmt.Sprintf(" %s \n", strings.Repeat(display, 2))
-		case 'b', 'e':
-			str += fmt.Sprintf("%s  ", display)
-		default:
-			str += fmt.Sprintf("%s\n", display)
-		}
-	}
-	fmt.Println(str)
-}
-
-type Digits struct {
-	digits []*Digit
-}
-
-func newDigits() *Digits {
-	digits := []*Digit{
-		newDigit(0, "abcefg"),
-		newDigit(1, "cf"),
-		newDigit(2, "acdeg"),
-		newDigit(3, "acdfg"),
-		newDigit(4, "bcdf"),
-		newDigit(5, "abdfg"),
-		newDigit(6, "abdefg"),
-		newDigit(7, "acf"),
-		newDigit(8, "abcdefg"),
-		newDigit(9, "abcdfg"),
-	}
-	return &Digits{digits}
-}
-
-func (d *Digits) print() {
-	for _, d := range d.digits {
-		fmt.Printf("%s\n", d)
-	}
-}
-
-func (d *Digits) lengths() map[int][]*Digit {
-	lengths := make(map[int][]*Digit)
-	for _, d := range d.digits {
-		n := d.numSegments()
-		if _, ok := lengths[n]; !ok {
-			lengths[n] = []*Digit{d}
-		} else {
-			lengths[n] = append(lengths[n], d)
-		}
-	}
-	return lengths
-}
-
-type Candidates struct {
-	pattern string
-	digits  []*Digit
-}
-
-func findObviousCandidates(fields []string) []Candidates {
-	digits := newDigits()
-	lengths := digits.lengths()
-	var discovered []Candidates
+	var candidates []int
 	for _, field := range fields {
-		n := len(field)
-		matched := lengths[n]
-		if len(matched) == 1 {
-			discovered = append(discovered, Candidates{field, matched})
+		if val, ok := lengths[len(field)]; ok {
+			candidates = append(candidates, val)
 		}
 	}
-	return discovered
+	return candidates
 }
 
 func simpleMatches(rows []Row) int {
