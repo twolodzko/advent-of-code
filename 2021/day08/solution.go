@@ -133,15 +133,21 @@ func remove(arr []string, key string) []string {
 func lifeSupportRating(row Row) int {
 	words := uniqueWords(row)
 
-	// 2, 4, 7, 8
+	// 1, 4, 7, 8
 	candidates, _ := obviousCandidates(words)
 	for _, c := range candidates {
 		words = remove(words, c)
 	}
 
+	fmt.Println(candidates)
+	fmt.Println(words)
+
 	// 9
 	for i := 0; i < len(words); i++ {
 		w := words[i]
+		if len(w) != 5 {
+			continue
+		}
 		c, ok := candidates[4]
 		if ok && len(intersection(c, w)) == 4 {
 			candidates[9] = w
@@ -149,39 +155,69 @@ func lifeSupportRating(row Row) int {
 		}
 	}
 
-	// 0
-	for i := 0; i < len(words); i++ {
-		w := words[i]
-		if len(intersection(candidates[8], w)) == 6 && len(intersection(candidates[1], w)) == 2 {
-			candidates[0] = w
-			words = remove(words, w)
-		}
-	}
-
 	// 6
 	for i := 0; i < len(words); i++ {
 		w := words[i]
-		if len(w) == 6 {
+		if len(w) != 6 {
+			continue
+		}
+		c, ok := candidates[1]
+		if ok && len(intersection(c, w)) == 1 {
 			candidates[6] = w
 			words = remove(words, w)
+		} else {
+			c, ok := candidates[4]
+			if ok && len(intersection(c, w)) == 3 {
+				candidates[6] = w
+				words = remove(words, w)
+			}
+		}
+	}
+
+	// 0
+	for i := 0; i < len(words); i++ {
+		w := words[i]
+		if len(w) != 6 {
+			continue
+		}
+		c, ok := candidates[8]
+		if ok && len(intersection(c, w)) == 6 {
+			c, ok := candidates[1]
+			if ok && len(intersection(c, w)) == 2 {
+				candidates[0] = w
+				words = remove(words, w)
+			}
+		} else {
+			c, ok := candidates[4]
+			if ok && len(intersection(c, w)) == 3 {
+				candidates[0] = w
+				words = remove(words, w)
+			}
 		}
 	}
 
 	// 3
 	for i := 0; i < len(words); i++ {
 		w := words[i]
-		if len(intersection(candidates[8], w)) == 5 && len(intersection(candidates[1], w)) == 2 {
+		if len(w) != 5 {
+			continue
+		}
+		c, ok := candidates[1]
+		if ok && len(intersection(c, w)) == 2 {
 			candidates[3] = w
 			words = remove(words, w)
 		}
 	}
 
-	// 6
+	// 5
 	for i := 0; i < len(words); i++ {
 		w := words[i]
+		if len(w) != 5 {
+			continue
+		}
 		c, ok := candidates[4]
-		if ok && len(intersection(c, w)) == 2 {
-			candidates[6] = w
+		if ok && len(intersection(c, w)) == 3 {
+			candidates[5] = w
 			words = remove(words, w)
 		}
 	}
@@ -192,7 +228,7 @@ func lifeSupportRating(row Row) int {
 		log.Fatalf("invalid input: %v", words)
 	}
 
-	candidates[5] = words[0]
+	candidates[2] = words[0]
 
 	fmt.Println(candidates)
 	return -1
