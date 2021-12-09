@@ -47,7 +47,7 @@ func parse(row string) (Row, error) {
 }
 
 func obviousCandidates(words []string) (map[int]string, int) {
-	var lengths = map[int]int{
+	lengths := map[int]int{
 		2: 1,
 		4: 4,
 		3: 7,
@@ -56,8 +56,7 @@ func obviousCandidates(words []string) (map[int]string, int) {
 	candidates := make(map[int]string)
 	total := 0
 	for _, field := range words {
-		n := len(field)
-		if digit, ok := lengths[n]; ok {
+		if digit, ok := lengths[len(field)]; ok {
 			candidates[digit] = field
 			total += 1
 		}
@@ -89,7 +88,7 @@ func uniqueWords(row Row) []string {
 		}
 	}
 	var out []string
-	for w, _ := range words {
+	for w := range words {
 		out = append(out, w)
 	}
 	return out
@@ -115,6 +114,7 @@ func intersection(a, b string) []rune {
 }
 
 func getMapping(row Row) map[int]string {
+
 	words := uniqueWords(row)
 
 	// 1, 4, 7, 8
@@ -173,9 +173,8 @@ func lifeSupportRating(rows []Row) int {
 	for _, row := range rows {
 		mapping := getMapping(row)
 		decoded := decodeOutput(row.output, mapping)
-		n := len(decoded)
 		dec := 1
-		for i := 0; i < n; i++ {
+		for i := 0; i < len(decoded); i++ {
 			dec *= 10
 		}
 		for _, d := range decoded {
