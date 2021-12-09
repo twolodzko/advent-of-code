@@ -73,7 +73,7 @@ func simpleMatches(rows []Row) int {
 	return total
 }
 
-func allWords(row Row) []string {
+func (row *Row) words() []string {
 	var words []string
 	for _, w := range row.patterns {
 		words = append(words, w)
@@ -164,7 +164,7 @@ func (g *GuessedDigits) guessDigit(s string) (int, bool) {
 
 func decode(row Row) ([]int, error) {
 	guess := newGuessedDigits()
-	guess.Init(allWords(row))
+	guess.Init(row.words())
 	var digits []int
 	for _, w := range row.output {
 		if d, ok := guess.guessDigit(w); ok {
