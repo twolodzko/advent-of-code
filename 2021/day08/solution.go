@@ -142,19 +142,6 @@ func lifeSupportRating(row Row) int {
 	fmt.Println(candidates)
 	fmt.Println(words)
 
-	// 9
-	for i := 0; i < len(words); i++ {
-		w := words[i]
-		if len(w) != 5 {
-			continue
-		}
-		c, ok := candidates[4]
-		if ok && len(intersection(c, w)) == 4 {
-			candidates[9] = w
-			words = remove(words, w)
-		}
-	}
-
 	// 6
 	for i := 0; i < len(words); i++ {
 		w := words[i]
@@ -173,6 +160,9 @@ func lifeSupportRating(row Row) int {
 			}
 		}
 	}
+
+	fmt.Println(candidates)
+	fmt.Println(words)
 
 	// 0
 	for i := 0; i < len(words); i++ {
@@ -196,6 +186,25 @@ func lifeSupportRating(row Row) int {
 		}
 	}
 
+	fmt.Println(candidates)
+	fmt.Println(words)
+
+	// 9
+	for i := 0; i < len(words); i++ {
+		w := words[i]
+		if len(w) != 6 {
+			continue
+		}
+		c, ok := candidates[4]
+		if ok && len(intersection(c, w)) == 4 {
+			candidates[9] = w
+			words = remove(words, w)
+		}
+	}
+
+	fmt.Println(candidates)
+	fmt.Println(words)
+
 	// 3
 	for i := 0; i < len(words); i++ {
 		w := words[i]
@@ -208,6 +217,9 @@ func lifeSupportRating(row Row) int {
 			words = remove(words, w)
 		}
 	}
+
+	fmt.Println(candidates)
+	fmt.Println(words)
 
 	// 5
 	for i := 0; i < len(words); i++ {
