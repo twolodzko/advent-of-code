@@ -54,10 +54,9 @@ func (p *Point) Neighbors(maxSize int) []Point {
 			}
 			i := p.i + di
 			j := p.j + dj
-			if i < 0 || i >= maxSize || j < 0 || j >= maxSize {
-				continue
+			if i >= 0 && i < maxSize && j >= 0 && j < maxSize {
+				neighbors = append(neighbors, Point{i, j})
 			}
-			neighbors = append(neighbors, Point{i, j})
 		}
 	}
 	return neighbors
@@ -83,7 +82,7 @@ func (q *Queue) Push(i, j int) {
 
 func (q *Queue) Pop() Point {
 	if len(q.items) == 0 {
-		return Point{}
+		log.Fatal("empty queue")
 	}
 	p := q.items[0]
 	if len(q.items) > 1 {
@@ -133,6 +132,7 @@ func run(board [][]int, steps int) int {
 		for queue.HasNext() {
 			point := queue.Pop()
 			board[point.i][point.j] += 1
+			// flash only once
 			if board[point.i][point.j] == 10 {
 				flashes += 1
 				queue.items = append(queue.items, point.Neighbors(size)...)
