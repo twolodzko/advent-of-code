@@ -24,6 +24,5 @@ docs/site/
 Manifest.toml
 
 *.so
-
-# Editor
+*.save
 *.code.workspace
