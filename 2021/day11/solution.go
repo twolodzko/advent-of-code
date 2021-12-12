@@ -24,9 +24,6 @@ func readFile(filename string) ([][]int, error) {
 		if err != nil {
 			return arr, err
 		}
-		if err != nil {
-			return arr, err
-		}
 		arr = append(arr, []int{})
 		for _, r := range line {
 			d, err := strconv.Atoi(string(r))
