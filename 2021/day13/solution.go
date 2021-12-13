@@ -72,10 +72,6 @@ type Point struct {
 	x, y int
 }
 
-func (a Point) Equal(b Point) bool {
-	return a.x == b.x && a.y == b.y
-}
-
 type Fold struct {
 	position   int
 	horizontal bool
