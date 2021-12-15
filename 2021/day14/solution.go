@@ -75,8 +75,8 @@ func (r *Rules) Process(template string, numSteps int) RuneCounter {
 func (r *Rules) Transform(pattern string) string {
 	partial := ""
 	for i := 0; i < len(pattern)-1; i++ {
-		pattern := pattern[i:(i + 2)]
-		partial += r.MapPattern(pattern)
+		chunk := pattern[i:(i + 2)]
+		partial += r.MapPattern(chunk)
 	}
 	// Rule:
 	//   ab -> x
@@ -93,6 +93,55 @@ func (r *Rules) MapPattern(pattern string) string {
 	} else {
 		return pattern[:len(pattern)-1]
 	}
+}
+
+type DepthExpander struct {
+	rules  Rules
+	memory map[State]RuneCounter
+}
+
+type State struct {
+	pattern string
+	depth   int
+}
+
+func DepthExpanderFromList(lst []Rule) DepthExpander {
+	rules := RulesFromList(lst)
+	memory := make(map[State]RuneCounter)
+	return DepthExpander{rules, memory}
+}
+
+func (e *DepthExpander) Process(pattern string, depth int) RuneCounter {
+	counter := e.Step(pattern, depth)
+	counter.Add(rune(pattern[len(pattern)-1]))
+	return counter
+}
+
+func (e *DepthExpander) Step(pattern string, depth int) RuneCounter {
+	state := State{pattern, depth}
+	if result, ok := e.memory[state]; ok {
+		return result
+	}
+
+	var result RuneCounter
+
+	if depth == 0 {
+		result = RuneCounterFromString(pattern[:len(pattern)-1])
+	} else {
+		counter := NewRuneCounter()
+		for i := 0; i < len(pattern)-1; i++ {
+			first := pattern[i:(i + 1)]
+			second := pattern[(i + 1):(i + 2)]
+			first = e.rules.MapPattern(first + second)
+
+			partial := e.Step(first+second, depth-1)
+			counter.Merge(partial)
+		}
+		result = counter
+	}
+
+	e.memory[state] = result
+	return result
 }
 
 type RuneCounter struct {
@@ -120,15 +169,15 @@ func (c *RuneCounter) Add(r rune) {
 	}
 }
 
-// func (c *RuneCounter) Merge(other RuneCounter) {
-// 	for key, val := range other.items {
-// 		if _, ok := c.items[key]; ok {
-// 			c.items[key] += val
-// 		} else {
-// 			c.items[key] = val
-// 		}
-// 	}
-// }
+func (c *RuneCounter) Merge(other RuneCounter) {
+	for key, val := range other.items {
+		if _, ok := c.items[key]; ok {
+			c.items[key] += val
+		} else {
+			c.items[key] = val
+		}
+	}
+}
 
 func (c *RuneCounter) MostCommon() (rune, int) {
 	var (
@@ -158,8 +207,15 @@ func (c *RuneCounter) LeastCommon() (rune, int) {
 	return bestRune, bestCount
 }
 
-func applySteps(template string, rules Rules, steps int) int {
-	counter := rules.Process(template, steps)
+func applySteps(template string, rules []Rule, steps int, memoize bool) int {
+	var counter RuneCounter
+	if !memoize {
+		r := RulesFromList(rules)
+		counter = r.Process(template, steps)
+	} else {
+		e := DepthExpanderFromList(rules)
+		counter = e.Process(template, steps)
+	}
 	_, mostCommonCount := counter.MostCommon()
 	_, leastCommonCount := counter.LeastCommon()
 	return mostCommonCount - leastCommonCount
@@ -171,15 +227,14 @@ func main() {
 	}
 
 	filename := os.Args[1]
-	template, rawRules, err := readFile(filename)
+	template, rules, err := readFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
-	rules := RulesFromList(rawRules)
 
-	result1 := applySteps(template, rules, 10)
+	result1 := applySteps(template, rules, 10, false)
 	fmt.Printf("Puzzle 1: %v\n", result1)
 
-	// result2 := applyDepthFirst(template, rules, 10)
-	// fmt.Printf("Puzzle 2: %v\n", result2)
+	result2 := applySteps(template, rules, 40, true)
+	fmt.Printf("Puzzle 2: %v\n", result2)
 }
