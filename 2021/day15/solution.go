@@ -45,24 +45,20 @@ type Point struct {
 	i, j int
 }
 
-func (x Point) Equal(y Point) bool {
-	return x.i == y.i && x.j == y.j
-}
-
 type Path struct {
 	path []Point
 	risk int
 }
 
 type Explorer struct {
-	graph [][]int
+	grid  [][]int
 	paths [][]Path
 }
 
-func NewExplorer(graph [][]int) Explorer {
+func NewExplorer(grid [][]int) Explorer {
 	var paths [][]Path
-	n := len(graph)
-	k := len(graph[n-1])
+	n := len(grid)
+	k := len(grid[n-1])
 	for i := 0; i < n; i++ {
 		row := []Path{}
 		for j := 0; j < k; j++ {
@@ -71,15 +67,15 @@ func NewExplorer(graph [][]int) Explorer {
 		paths = append(paths, row)
 	}
 	paths[0][0] = Path{[]Point{{0, 0}}, 0}
-	return Explorer{graph, paths}
+	return Explorer{grid, paths}
 }
 
 func (e *Explorer) FindBest() int {
 	right := Path{nil, math.MaxInt}
 	down := Path{nil, math.MaxInt}
 
-	n := len(e.graph)
-	k := len(e.graph[n-1])
+	n := len(e.grid)
+	k := len(e.grid[n-1])
 
 	for i := 0; i < n; i++ {
 		for j := 0; j < k; j++ {
@@ -105,8 +101,45 @@ func (e *Explorer) FindBest() int {
 
 func (e *Explorer) NewPath(from, to Point) Path {
 	prev := e.paths[from.i][from.j]
-	risk := prev.risk + e.graph[to.i][to.j]
+	risk := prev.risk + e.grid[to.i][to.j]
 	return Path{append(prev.path, to), risk}
+}
+
+func wrap(x int) int {
+	return (x-1)%9 + 1
+}
+
+func expandGrid(grid [][]int, times int) [][]int {
+
+	for i, row := range grid {
+		for k := 1; k < times; k++ {
+			for _, x := range row {
+				grid[i] = append(grid[i], wrap(x+k))
+			}
+		}
+	}
+
+	n := len(grid)
+
+	for k := 1; k < times; k++ {
+		for i := 0; i < n; i++ {
+			row := grid[i]
+			tmp := []int{}
+			for _, x := range row {
+				tmp = append(tmp, wrap(x+k))
+			}
+			grid = append(grid, tmp)
+		}
+	}
+
+	// for _, row := range grid {
+	// 	for _, x := range row {
+	// 		fmt.Print(x)
+	// 	}
+	// 	fmt.Println()
+	// }
+
+	return grid
 }
 
 func main() {
@@ -125,6 +158,8 @@ func main() {
 	result1 := explorer.FindBest()
 	fmt.Printf("Puzzle 1: %v\n", result1)
 
-	// result2 := middleScore(arr)
-	// fmt.Printf("Puzzle 2: %v\n", result2)
+	biggerExplorer := NewExplorer(expandGrid(arr, 5))
+
+	result2 := biggerExplorer.FindBest()
+	fmt.Printf("Puzzle 2: %v\n", result2)
 }
