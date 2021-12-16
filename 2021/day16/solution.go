@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"log"
+	"math"
+	"os"
 )
-
-const DEBUG = true
 
 type Binary []byte
 
@@ -62,6 +64,192 @@ type Packet struct {
 	payload interface{}
 }
 
+func (p *Packet) VersionNumberSum() int {
+	total := p.version
+	switch obj := p.payload.(type) {
+	case []Packet:
+		for _, packet := range obj {
+			total += packet.VersionNumberSum()
+		}
+	default:
+	}
+	return total
+}
+
+func (p *Packet) Value() (int, error) {
+	switch p.typeId {
+	case 0:
+		return p.Sum()
+	case 1:
+		return p.Prod()
+	case 2:
+		return p.Min()
+	case 3:
+		return p.Max()
+	case 4:
+		switch obj := p.payload.(type) {
+		case int:
+			return p.payload.(int), nil
+		default:
+			return 0, fmt.Errorf("invalid type: %T", obj)
+		}
+	case 5:
+		return p.Greater()
+	case 6:
+		return p.Less()
+	case 7:
+		return p.Equal()
+	default:
+		return 0, fmt.Errorf("invalid typeId: %v", p.typeId)
+	}
+}
+
+func (p *Packet) PayloadToPackets() ([]Packet, error) {
+	switch obj := p.payload.(type) {
+	case []Packet:
+		return obj, nil
+	default:
+		return nil, fmt.Errorf("invalid type: %T", obj)
+	}
+}
+
+func (p *Packet) Sum() (int, error) {
+	result := 0
+	packets, err := p.PayloadToPackets()
+	if err != nil {
+		return 0, err
+	}
+	for _, packet := range packets {
+		val, err := packet.Value()
+		if err != nil {
+			return 0, err
+		}
+		result += val
+	}
+	return result, nil
+}
+
+func (p *Packet) Prod() (int, error) {
+	result := 1
+	packets, err := p.PayloadToPackets()
+	if err != nil {
+		return 0, err
+	}
+	for _, packet := range packets {
+		val, err := packet.Value()
+		if err != nil {
+			return 0, err
+		}
+		result *= val
+	}
+	return result, nil
+}
+
+func (p *Packet) Min() (int, error) {
+	result := math.MaxInt
+	packets, err := p.PayloadToPackets()
+	if err != nil {
+		return 0, err
+	}
+	for _, packet := range packets {
+		val, err := packet.Value()
+		if err != nil {
+			return 0, err
+		}
+		if val < result {
+			result = val
+		}
+	}
+	return result, nil
+}
+
+func (p *Packet) Max() (int, error) {
+	result := 0
+	packets, err := p.PayloadToPackets()
+	if err != nil {
+		return 0, err
+	}
+	for _, packet := range packets {
+		val, err := packet.Value()
+		if err != nil {
+			return 0, err
+		}
+		if val > result {
+			result = val
+		}
+	}
+	return result, nil
+}
+
+func (p *Packet) Greater() (int, error) {
+	packets, err := p.PayloadToPackets()
+	if err != nil {
+		return 0, err
+	}
+	if len(packets) != 2 {
+		return 0, fmt.Errorf("expected two packets, got %v", packets)
+	}
+	x, err := packets[0].Value()
+	if err != nil {
+		return 0, err
+	}
+	y, err := packets[1].Value()
+	if err != nil {
+		return 0, err
+	}
+	if x > y {
+		return 1, nil
+	} else {
+		return 0, nil
+	}
+}
+
+func (p *Packet) Less() (int, error) {
+	packets, err := p.PayloadToPackets()
+	if err != nil {
+		return 0, err
+	}
+	if len(packets) != 2 {
+		return 0, fmt.Errorf("expected two packets, got %v", packets)
+	}
+	x, err := packets[0].Value()
+	if err != nil {
+		return 0, err
+	}
+	y, err := packets[1].Value()
+	if err != nil {
+		return 0, err
+	}
+	if x < y {
+		return 1, nil
+	} else {
+		return 0, nil
+	}
+}
+
+func (p *Packet) Equal() (int, error) {
+	packets, err := p.PayloadToPackets()
+	if err != nil {
+		return 0, err
+	}
+	if len(packets) != 2 {
+		return 0, fmt.Errorf("expected two packets, got %v", packets)
+	}
+	x, err := packets[0].Value()
+	if err != nil {
+		return 0, err
+	}
+	y, err := packets[1].Value()
+	if err != nil {
+		return 0, err
+	}
+	if x == y {
+		return 1, nil
+	} else {
+		return 0, nil
+	}
+}
+
 type PacketReader struct {
 	message  Binary
 	position int
@@ -77,11 +265,6 @@ func NewPacketReader(str string) (PacketReader, error) {
 }
 
 func (r *PacketReader) ReadPacket() (Packet, error) {
-
-	if DEBUG {
-		fmt.Printf("reading packet: %v\n", r.message[r.position:r.end])
-	}
-
 	version, typeId, err := r.ReadHeader()
 	if err != nil {
 		return Packet{}, err
@@ -94,16 +277,12 @@ func (r *PacketReader) ReadPacket() (Packet, error) {
 }
 
 func (r *PacketReader) ReadHeader() (int, int, error) {
-	if len(r.message) < 6 {
-		return 0, 0, fmt.Errorf("invalid packet: %v", r.message[r.position:])
+	if r.end-r.position < 6 {
+		return 0, 0, fmt.Errorf("packet to short: %v", r.message[r.position:])
 	}
 	version := r.message[r.position : r.position+3]
 	typeId := r.message[r.position+3 : r.position+6]
 	r.position += 6
-	if DEBUG {
-		fmt.Printf("   version: %d (%v)\n", version.ToInt(), version)
-		fmt.Printf("   typeId: %d (%v)\n", typeId.ToInt(), typeId)
-	}
 	return version.ToInt(), typeId.ToInt(), nil
 }
 
@@ -119,58 +298,54 @@ func (r *PacketReader) HasNext() bool {
 	return r.position < r.end
 }
 
-func (r *PacketReader) Next() (byte, error) {
-	if r.HasNext() {
+func (r *PacketReader) ReadByte() (byte, error) {
+	if r.position < r.end {
 		val := r.message[r.position]
 		r.position++
 		return val, nil
 	}
-	return 0, fmt.Errorf("end of input")
+	return 0, io.EOF
 }
 
 func (r *PacketReader) ReadLiteralValue() (int, error) {
-	if r.position+5 > len(r.message) {
+	if r.position+5 > r.end {
 		return 0, fmt.Errorf("invalid message: %v", r.message)
 	}
 
 	var groups Binary
-	for r.HasNext() {
-		start := r.position
-		r.position++
+	for {
+		start, err := r.ReadByte()
+		if err != nil {
+			return 0, err
+		}
 
 		group := Binary{}
-		for r.position < start+5 {
-			group = append(group, r.message[r.position])
-			r.position++
-		}
-		if DEBUG {
-			fmt.Printf("      group: %v\n", group)
+		for i := 0; i < 4; i++ {
+			val, err := r.ReadByte()
+			if err != nil {
+				return 0, err
+			}
+			group = append(group, val)
 		}
 		groups = append(groups, group...)
 
 		// last group identifier
-		if r.message[start] == 0 {
+		if start == 0 {
 			break
 		}
 	}
 	value := groups.ToInt()
-	if DEBUG {
-		fmt.Printf("   literal value: %d\n", value)
-	}
 	return value, nil
 }
 
 func (r *PacketReader) ReadInputLength() (byte, int, error) {
-	lengthTypeId := r.message[r.position]
-	r.position++
+	lengthTypeId, err := r.ReadByte()
+	if err != nil {
+		return 0, 0, err
+	}
 
-	start := r.position
 	var bits Binary
 	var fieldLength int
-
-	if DEBUG {
-		fmt.Printf("   length type ID: %d\n", lengthTypeId)
-	}
 
 	if lengthTypeId == 0 {
 		// total length in bits
@@ -180,16 +355,12 @@ func (r *PacketReader) ReadInputLength() (byte, int, error) {
 		fieldLength = 11
 	}
 
-	for r.HasNext() {
-		if r.position >= start+fieldLength {
-			break
+	for i := 0; i < fieldLength; i++ {
+		val, err := r.ReadByte()
+		if err != nil {
+			return 0, 0, err
 		}
-		bits = append(bits, r.message[r.position])
-		r.position++
-	}
-
-	if DEBUG {
-		fmt.Printf("   length of sub-packets: %d\n", bits.ToInt())
+		bits = append(bits, val)
 	}
 
 	return lengthTypeId, bits.ToInt(), nil
@@ -207,17 +378,26 @@ func (r *PacketReader) ReadOperator() (interface{}, error) {
 	}
 }
 
+func (r *PacketReader) FollowOnlyZeros() bool {
+	for i := r.position; i < r.end; i++ {
+		if r.message[i] != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 func (r *PacketReader) ReadPacketsUntil(end int) ([]Packet, error) {
 	var packets []Packet
-	for r.HasNext() {
+	start := r.position
+	for r.position < start+end {
 		packet, err := r.ReadPacket()
 		if err != nil {
 			return nil, err
 		}
 		packets = append(packets, packet)
 
-		// 3 + 3 + 5 = 11 is the smallest literal package
-		if r.end-r.position < 11 {
+		if r.FollowOnlyZeros() {
 			break
 		}
 	}
@@ -226,12 +406,19 @@ func (r *PacketReader) ReadPacketsUntil(end int) ([]Packet, error) {
 
 func (r *PacketReader) ReadNPackets(n int) ([]Packet, error) {
 	var packets []Packet
-	for len(packets) < n {
+	for {
 		packet, err := r.ReadPacket()
 		if err != nil {
 			return nil, err
 		}
 		packets = append(packets, packet)
+
+		if len(packets) == n {
+			break
+		}
+		if r.FollowOnlyZeros() {
+			break
+		}
 	}
 	return packets, nil
 }
@@ -244,6 +431,21 @@ func parse(str string) (Packet, error) {
 	return reader.ReadPacket()
 }
 
+func readFile(filename string) (string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	scanner.Scan()
+	line := scanner.Text()
+	err = scanner.Err()
+	return line, err
+}
+
 func main() {
 
 	for _, example := range []string{
@@ -254,6 +456,14 @@ func main() {
 		"620080001611562C8802118E34",
 		"C0015000016115A2E0802F182340",
 		"A0016C880162017C3686B18A3D4780",
+		"C200B40A82",
+		"04005AC33890",
+		"880086C3E88112",
+		"CE00C43D881120",
+		"D8005AC2A8F0",
+		"F600BC2D8F",
+		"9C005AC2F8F0",
+		"9C0141080250320F1802104A08",
 	} {
 		fmt.Printf("%v\n", example)
 		packet, err := parse(example)
@@ -261,7 +471,37 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf(" => %v\n", packet)
+		fmt.Printf(" checksum = %d\n", packet.VersionNumberSum())
+		val, err := packet.Value()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf(" value = %d\n", val)
 		fmt.Println()
 	}
+
+	if len(os.Args) < 2 {
+		log.Fatal("No arguments provided")
+	}
+
+	filename := os.Args[1]
+	message, err := readFile(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	packet, err := parse(message)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result1 := packet.VersionNumberSum()
+	fmt.Printf("Puzzle 1: %v\n", result1)
+
+	result2, err := packet.Value()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Puzzle 2: %v\n", result2)
 
 }
