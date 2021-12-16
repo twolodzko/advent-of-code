@@ -51,73 +51,62 @@ type Path struct {
 }
 
 type Explorer struct {
-	grid [][]int
-	prev []Path
+	grid  [][]int
+	paths [][]Path
 }
 
 func NewExplorer(grid [][]int) Explorer {
-	return Explorer{grid, []Path{}}
+	var paths [][]Path
+	n := len(grid)
+	k := len(grid[n-1])
+	for i := 0; i < n; i++ {
+		row := []Path{}
+		for j := 0; j < k; j++ {
+			row = append(row, Path{nil, math.MaxInt})
+		}
+		paths = append(paths, row)
+	}
+	paths[0][0] = Path{[]Point{{0, 0}}, 0}
+	return Explorer{grid, paths}
 }
 
 func (e *Explorer) FindBest() int {
-	var (
-		right, down Path
-		current     []Path
-	)
+	right := Path{nil, math.MaxInt}
+	down := Path{nil, math.MaxInt}
 
 	n := len(e.grid)
 	k := len(e.grid[n-1])
 
-	// initialize for row 0, the: x[0][0] -> x[0][1] -> x[0][2] -> ... path
-	e.prev = []Path{{[]Point{{0, 0}}, 0}}
-	for j := 1; j < k; j++ {
-		path := append(e.prev[j-1].path, Point{0, j})
-		risk := e.prev[j-1].risk + e.grid[0][j]
-		e.prev = append(e.prev, Path{path, risk})
-	}
-
-	// other rows
-	for i := 1; i < n; i++ {
-		current = nil
+	for i := 0; i < n; i++ {
 		for j := 0; j < k; j++ {
-			// path x[i-1][j] -> x[i][j]
-			path := append(e.prev[j].path, Point{i - 1, j})
-			risk := e.prev[j].risk + e.grid[i][j]
-			down = Path{path, risk}
-
-			// path x[i][j-1] -> x[i][j]
-			if j > 0 {
-				path := append(current[j-1].path, Point{i, j - 1})
-				risk := current[j-1].risk + e.grid[i][j]
-				right = Path{path, risk}
-			} else {
-				right = Path{nil, math.MaxInt}
+			if e.paths[i][j].risk == 0 {
+				continue
 			}
-
-			// pick the path with lowest risk
-			// collect current row in temporary slice
+			if i > 0 {
+				right = e.NewPath(Point{i - 1, j}, Point{i, j})
+			}
+			if j > 0 {
+				down = e.NewPath(Point{i, j - 1}, Point{i, j})
+			}
 			if right.risk < down.risk {
-				current = append(current, right)
+				e.paths[i][j] = right
 			} else {
-				current = append(current, down)
+				e.paths[i][j] = down
 			}
 		}
-		// next row, we care only about the previous row
-		e.prev = current
 	}
 
-	// the final x[n-1][k-1] position
-	return current[len(current)-1].risk
+	return e.paths[n-1][k-1].risk
+}
+
+func (e *Explorer) NewPath(from, to Point) Path {
+	prev := e.paths[from.i][from.j]
+	risk := prev.risk + e.grid[to.i][to.j]
+	return Path{append(prev.path, to), risk}
 }
 
 func wrap(x int) int {
 	return (x-1)%9 + 1
-}
-
-func printDims(grid [][]int) {
-	n := len(grid)
-	k := len(grid[n-1])
-	fmt.Println(n, k)
 }
 
 func expandGrid(grid [][]int, times int) [][]int {
@@ -142,14 +131,6 @@ func expandGrid(grid [][]int, times int) [][]int {
 			grid = append(grid, tmp)
 		}
 	}
-
-	// for _, row := range grid {
-	// 	for _, x := range row {
-	// 		fmt.Print(x)
-	// 	}
-	// 	fmt.Println()
-	// }
-
 	return grid
 }
 
@@ -163,9 +144,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// printDims(arr)
-	// printDims(expandGrid(arr, 5))
 
 	explorer := NewExplorer(arr)
 
