@@ -56,10 +56,9 @@ type Velocity struct {
 }
 
 func (v *Velocity) Next() (int, int) {
-	switch {
-	case v.x > 0:
+	if v.x > 0 {
 		v.x--
-	case v.x < 0:
+	} else if v.x < 0 {
 		v.x++
 	}
 	v.y--
@@ -101,6 +100,7 @@ func (p *Probe) Fire(r Rectangle) bool {
 			return false
 		}
 		if r.Contains(p.pos) {
+			// hit
 			return true
 		}
 		p.Next()
