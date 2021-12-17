@@ -42,14 +42,13 @@ func parse(s string) (Rectangle, error) {
 //  or does not change if it is already 0.
 //  - Due to gravity, the probe's y velocity decreases by 1.
 //
+//   dy = dy - n*(n+1)/2
 //   y = n*dy - n*(n+1)/2
-//   dy(y) = dy - n*(n+1)/2
-//   y = (n^2 + 2 + 2*y) / 2*n
 //   y = 0  at  (n-1)/2
 //
-//   dx(x) = dx - n*(n+1)/2   x > 0
-//   dx(0) = 0
-//   dx(x) = dx + n*(n+1)/2   x < 0
+//   dx = dx - n*(n+1)/2   x > 0
+//   dx = 0                x = 0
+//   dx = dx + n*(n+1)/2   x < 0
 //
 type Velocity struct {
 	x, y int
