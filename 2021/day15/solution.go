@@ -55,6 +55,25 @@ type Explorer struct {
 	paths [][]Path
 }
 
+func (e *Explorer) Neighbors(p Point) []Point {
+	// n := len(e.grid)
+	// k := len(e.grid[n-1])
+	var neighbors []Point
+	if p.i > 0 {
+		neighbors = append(neighbors, Point{p.i - 1, p.j})
+	}
+	// if p.i+1 < n-1 {
+	// 	neighbors = append(neighbors, Point{p.i + 1, p.j})
+	// }
+	if p.j > 0 {
+		neighbors = append(neighbors, Point{p.i, p.j - 1})
+	}
+	// if p.j+1 < k-1 {
+	// 	neighbors = append(neighbors, Point{p.i, p.j + 1})
+	// }
+	return neighbors
+}
+
 func NewExplorer(grid [][]int) Explorer {
 	var paths [][]Path
 	n := len(grid)
@@ -71,9 +90,6 @@ func NewExplorer(grid [][]int) Explorer {
 }
 
 func (e *Explorer) FindBest() int {
-	right := Path{nil, math.MaxInt}
-	down := Path{nil, math.MaxInt}
-
 	n := len(e.grid)
 	k := len(e.grid[n-1])
 
@@ -82,17 +98,15 @@ func (e *Explorer) FindBest() int {
 			if e.paths[i][j].risk == 0 {
 				continue
 			}
-			if i > 0 {
-				right = e.NewPath(Point{i - 1, j}, Point{i, j})
+			best := Path{nil, math.MaxInt}
+			here := Point{i, j}
+			for _, neighbor := range e.Neighbors(here) {
+				path := e.NewPath(neighbor, here)
+				if path.risk < best.risk {
+					best = path
+				}
 			}
-			if j > 0 {
-				down = e.NewPath(Point{i, j - 1}, Point{i, j})
-			}
-			if right.risk < down.risk {
-				e.paths[i][j] = right
-			} else {
-				e.paths[i][j] = down
-			}
+			e.paths[i][j] = best
 		}
 	}
 
