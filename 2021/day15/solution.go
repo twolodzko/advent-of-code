@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -46,31 +47,65 @@ type Point struct {
 }
 
 type Path struct {
-	path []Point
+	dest Point
 	risk int
 }
 
+type Paths []Path
+
+func (p Paths) Less(i, j int) bool {
+	return p[i].risk < p[j].risk
+}
+
+func (p Paths) Len() int {
+	return len(p)
+}
+
+func (p Paths) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+func (p *Paths) Pop() (Path, bool) {
+	if len(*p) > 0 {
+		path := (*p)[0]
+		*p = (*p)[1:]
+		return path, true
+	}
+	return Path{}, false
+}
+
+func (p Paths) MinRisk() int {
+	best := math.MaxInt
+	for _, path := range p {
+		if path.risk < best {
+			best = path.risk
+		}
+	}
+	return best
+}
+
 type Explorer struct {
-	grid  [][]int
+	risks [][]int
 	paths [][]Path
+	queue Paths
 }
 
 func (e *Explorer) Neighbors(p Point) []Point {
-	// n := len(e.grid)
-	// k := len(e.grid[n-1])
+	n := len(e.risks)
+	k := len(e.risks[n-1])
 	var neighbors []Point
 	if p.i > 0 {
 		neighbors = append(neighbors, Point{p.i - 1, p.j})
 	}
-	// if p.i+1 < n-1 {
-	// 	neighbors = append(neighbors, Point{p.i + 1, p.j})
-	// }
+	if p.i+1 < n-1 {
+		neighbors = append(neighbors, Point{p.i + 1, p.j})
+	}
 	if p.j > 0 {
 		neighbors = append(neighbors, Point{p.i, p.j - 1})
 	}
-	// if p.j+1 < k-1 {
-	// 	neighbors = append(neighbors, Point{p.i, p.j + 1})
-	// }
+	if p.j+1 < k-1 {
+		neighbors = append(neighbors, Point{p.i, p.j + 1})
+	}
 	return neighbors
 }
 
@@ -81,42 +116,49 @@ func NewExplorer(grid [][]int) Explorer {
 	for i := 0; i < n; i++ {
 		row := []Path{}
 		for j := 0; j < k; j++ {
-			row = append(row, Path{nil, math.MaxInt})
+			row = append(row, Path{Point{0, 0}, math.MaxInt})
 		}
 		paths = append(paths, row)
 	}
-	paths[0][0] = Path{[]Point{{0, 0}}, 0}
-	return Explorer{grid, paths}
+	paths[0][0] = Path{Point{0, 0}, 0}
+	queue := Paths{{Point{0, 1}, grid[0][1]}, {Point{1, 0}, grid[1][0]}}
+	sort.Sort(queue)
+	return Explorer{grid, paths, queue}
 }
 
 func (e *Explorer) FindBest() int {
-	n := len(e.grid)
-	k := len(e.grid[n-1])
+	n := len(e.risks)
+	k := len(e.risks[n-1])
 
-	for i := 0; i < n; i++ {
-		for j := 0; j < k; j++ {
-			if e.paths[i][j].risk == 0 {
-				continue
-			}
-			best := Path{nil, math.MaxInt}
-			here := Point{i, j}
-			for _, neighbor := range e.Neighbors(here) {
-				path := e.NewPath(neighbor, here)
-				if path.risk < best.risk {
-					best = path
-				}
-			}
-			e.paths[i][j] = best
+	for len(e.queue) > 0 {
+		here, ok := e.queue.Pop()
+		// fmt.Println(here)
+		if !ok {
+			break
 		}
-	}
+		if here.risk < e.paths[here.dest.i][here.dest.j].risk {
+			e.paths[here.dest.i][here.dest.j] = here
+		}
+		if here.dest.i == n-1 && here.dest.j == k-1 {
+			if here.risk < e.queue.MinRisk() {
+				break
+			}
+		}
 
+		for _, neighbor := range e.Neighbors(here.dest) {
+			to := e.NewPath(here.dest, neighbor)
+			if to.risk < e.paths[to.dest.i][to.dest.j].risk {
+				e.queue = append(e.queue, to)
+			}
+		}
+		sort.Sort(e.queue)
+	}
 	return e.paths[n-1][k-1].risk
 }
 
 func (e *Explorer) NewPath(from, to Point) Path {
-	prev := e.paths[from.i][from.j]
-	risk := prev.risk + e.grid[to.i][to.j]
-	return Path{append(prev.path, to), risk}
+	risk := e.paths[from.i][from.j].risk + e.risks[to.i][to.j]
+	return Path{to, risk}
 }
 
 func wrap(x int) int {
