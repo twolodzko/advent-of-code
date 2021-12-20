@@ -6,7 +6,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"sort"
 	"strconv"
 )
 
@@ -47,34 +46,38 @@ type Point struct {
 }
 
 type Path struct {
-	dest Point
+	path []Point
 	risk int
 }
 
-type Paths []Path
+func (p Path) Last() Point {
+	return p.path[len(p.path)-1]
+}
 
-func (p Paths) Less(i, j int) bool {
+type PathsQueue []Path
+
+func (p PathsQueue) Less(i, j int) bool {
 	return p[i].risk < p[j].risk
 }
 
-func (p Paths) Len() int {
+func (p PathsQueue) Len() int {
 	return len(p)
 }
 
-func (p Paths) Swap(i, j int) {
+func (p PathsQueue) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-func (p *Paths) Pop() (Path, bool) {
+func (p *PathsQueue) Pop() (Path, bool) {
 	if len(*p) > 0 {
-		path := (*p)[0]
+		val := (*p)[0]
 		*p = (*p)[1:]
-		return path, true
+		return val, true
 	}
 	return Path{}, false
 }
 
-func (p Paths) MinRisk() int {
+func (p PathsQueue) MinRisk() int {
 	best := math.MaxInt
 	for _, path := range p {
 		if path.risk < best {
@@ -84,27 +87,44 @@ func (p Paths) MinRisk() int {
 	return best
 }
 
+func (p *PathsQueue) Insert(path Path) {
+	for i := 0; i < len(*p); i++ {
+		if path.risk < (*p)[i].risk {
+			tmp := append((*p)[:i], path)
+			*p = append(tmp, (*p)[i:]...)
+			return
+		}
+	}
+	*p = append(*p, path)
+}
+
 type Explorer struct {
 	risks [][]int
 	paths [][]Path
-	queue Paths
+	queue PathsQueue
 }
 
-func (e *Explorer) Neighbors(p Point) []Point {
+func (e Explorer) Neighbors(p Point) []Path {
 	n := len(e.risks)
 	k := len(e.risks[n-1])
-	var neighbors []Point
-	if p.i > 0 {
-		neighbors = append(neighbors, Point{p.i - 1, p.j})
+
+	var points []Point
+	// if p.i > 0 {
+	// 	points = append(points, Point{p.i - 1, p.j})
+	// }
+	if p.i+1 < n {
+		points = append(points, Point{p.i + 1, p.j})
 	}
-	if p.i+1 < n-1 {
-		neighbors = append(neighbors, Point{p.i + 1, p.j})
+	// if p.j > 0 {
+	// 	points = append(points, Point{p.i, p.j - 1})
+	// }
+	if p.j+1 < k {
+		points = append(points, Point{p.i, p.j + 1})
 	}
-	if p.j > 0 {
-		neighbors = append(neighbors, Point{p.i, p.j - 1})
-	}
-	if p.j+1 < k-1 {
-		neighbors = append(neighbors, Point{p.i, p.j + 1})
+
+	var neighbors []Path
+	for _, dest := range points {
+		neighbors = append(neighbors, e.NewPath(p, dest))
 	}
 	return neighbors
 }
@@ -116,13 +136,18 @@ func NewExplorer(grid [][]int) Explorer {
 	for i := 0; i < n; i++ {
 		row := []Path{}
 		for j := 0; j < k; j++ {
-			row = append(row, Path{Point{0, 0}, math.MaxInt})
+			row = append(row, Path{nil, math.MaxInt})
 		}
 		paths = append(paths, row)
 	}
-	paths[0][0] = Path{Point{0, 0}, 0}
-	queue := Paths{{Point{0, 1}, grid[0][1]}, {Point{1, 0}, grid[1][0]}}
-	sort.Sort(queue)
+
+	paths[0][0].risk = 0
+
+	var queue PathsQueue
+	for _, point := range []Point{{0, 1}, {1, 0}} {
+		path := Path{[]Point{{0, 0}, point}, grid[point.i][point.j]}
+		queue.Insert(path)
+	}
 	return Explorer{grid, paths, queue}
 }
 
@@ -130,35 +155,40 @@ func (e *Explorer) FindBest() int {
 	n := len(e.risks)
 	k := len(e.risks[n-1])
 
-	for len(e.queue) > 0 {
-		here, ok := e.queue.Pop()
-		// fmt.Println(here)
-		if !ok {
+	for {
+		path, emptyQueue := e.queue.Pop()
+		if !emptyQueue {
 			break
 		}
-		if here.risk < e.paths[here.dest.i][here.dest.j].risk {
-			e.paths[here.dest.i][here.dest.j] = here
+		here := path.Last()
+		// fmt.Println(e.queue)
+		// fmt.Println(path)
+		// if i > 10 {
+		// 	// fmt.Println(e.queue)
+		// 	break
+		// }
+		if path.risk <= e.paths[here.i][here.j].risk {
+			e.paths[here.i][here.j] = path
+		} else {
+			continue
 		}
-		if here.dest.i == n-1 && here.dest.j == k-1 {
-			if here.risk < e.queue.MinRisk() {
+		for _, neighbor := range e.Neighbors(here) {
+			e.queue.Insert(neighbor)
+		}
+		if here.i == n-1 && here.j == k-1 {
+			if e.paths[here.i][here.j].risk <= e.queue.MinRisk() {
 				break
 			}
 		}
-
-		for _, neighbor := range e.Neighbors(here.dest) {
-			to := e.NewPath(here.dest, neighbor)
-			if to.risk < e.paths[to.dest.i][to.dest.j].risk {
-				e.queue = append(e.queue, to)
-			}
-		}
-		sort.Sort(e.queue)
 	}
+	fmt.Println(e.paths[n-1][k-1])
 	return e.paths[n-1][k-1].risk
 }
 
 func (e *Explorer) NewPath(from, to Point) Path {
 	risk := e.paths[from.i][from.j].risk + e.risks[to.i][to.j]
-	return Path{to, risk}
+	path := append(e.paths[from.i][from.j].path, to)
+	return Path{path, risk}
 }
 
 func wrap(x int) int {
