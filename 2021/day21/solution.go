@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
 type DeterministicDice struct {
@@ -87,16 +86,6 @@ func main() {
 	game := NewGame([]Player{NewPlayer(6), NewPlayer(10)})
 	result1 := game.Play()
 	fmt.Printf("Puzzle 1: %v\n", result1)
-
-	fmt.Println("========")
-	start := time.Now()
-	total := 0
-	for i := 0; i < 444356092776315; i++ {
-		// total++
-	}
-	fmt.Println(total)
-	elapsed := time.Since(start)
-	fmt.Printf("Binomial took %s", elapsed)
 
 	// result2 :=
 	// fmt.Printf("Puzzle 2: %v\n", result2)
