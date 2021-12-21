@@ -79,6 +79,63 @@ func mod1(x, m int) int {
 	return (x-1)%m + 1
 }
 
+// type Counter map[int]int64
+
+// func NewCounter() Counter {
+// 	return make(map[int]int64)
+// }
+
+// func (c Counter) Add(x int) {
+// 	if _, ok := c[x]; ok {
+// 		c[x] += 1
+// 	} else {
+// 		c[x] = 1
+// 	}
+// }
+
+// func (src Counter) Merge(tgt Counter) {
+// 	for key, val := range tgt {
+// 		next := key + 1
+// 		if _, ok := src[next]; ok {
+// 			src[next] += val
+// 		} else {
+// 			src[next] = val
+// 		}
+// 	}
+// }
+
+// type GameSimulator struct {
+// 	paths [21]Counter
+// }
+
+// func NewGameSimulator() GameSimulator {
+// 	var paths [21]Counter
+// 	return GameSimulator{paths}
+// }
+
+// func (g *GameSimulator) Move(score int) Counter {
+// 	paths := NewCounter()
+// 	for i := 1; i <= 3; i++ {
+// 		for space := 1; space <= 10; space++ {
+// 			newScore := score + mod1(space+i, 10)
+// 			if newScore >= 21 {
+// 				paths.Add(1)
+// 			} else {
+// 				paths.Merge(g.paths[newScore])
+// 			}
+// 		}
+// 	}
+// 	g.paths[score] = paths
+// 	return paths
+// }
+
+// func (g *GameSimulator) Explore() [21]Counter {
+// 	for i := 20; i > 0; i-- {
+// 		g.Move(i)
+// 	}
+// 	return g.paths
+// }
+
 func main() {
 	example := NewGame([]Player{NewPlayer(4), NewPlayer(8)})
 	fmt.Printf("Example: %v\n", example.Play())
