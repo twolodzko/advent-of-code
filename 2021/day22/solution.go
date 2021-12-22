@@ -55,8 +55,8 @@ type Range struct {
 	min, max int
 }
 
-func (r Range) Size() int {
-	return (r.max - r.min) + 1
+func (r Range) Size() int64 {
+	return int64(r.max-r.min) + 1
 }
 
 func min(x, y int) int {
@@ -112,15 +112,28 @@ func (a Cube) Intersect(b Cube) (Cube, bool) {
 	return Cube{xyz[0], xyz[1], xyz[2]}, true
 }
 
+func (a Cube) IsIntersecting(b Cube) bool {
+	_, ok := a.Intersect(b)
+	return ok
+}
+
 type Step struct {
 	Cube
 	state bool
 }
 
-// func (a Step) Intersect(b Step) (Step, bool) {
-// 	cube, ok := a.Intersect(b)
-// 	return Step{cube, false}, ok
-// }
+func (s Step) GetCube() Cube {
+	return Cube{s.x, s.y, s.z}
+}
+
+func (a Cube) Equal(b Cube) bool {
+	for _, r := range [][]Range{{a.x, b.x}, {a.y, b.y}, {a.z, b.z}} {
+		if r[0] != r[1] {
+			return false
+		}
+	}
+	return true
+}
 
 func (s Step) OutsideOfInit() bool {
 	for _, r := range []Range{s.x, s.y, s.z} {
@@ -131,8 +144,8 @@ func (s Step) OutsideOfInit() bool {
 	return false
 }
 
-func (s Step) Size() int {
-	return s.x.Size() * s.y.Size() * s.z.Size()
+func (c Cube) Size() int64 {
+	return c.x.Size() * c.y.Size() * c.z.Size()
 }
 
 type Point struct {
@@ -183,36 +196,68 @@ func (c Cuboid) CountActive() int {
 	return len(c.cubes)
 }
 
-func (c Cuboid) FullInit(steps []Step) int {
-	var stepSequences [][]Step
+type StepExpanded struct {
+	Step
+	followUp []Cube
+}
 
-	for i, step := range steps {
-		if i == 0 {
-			stepSequences = append(stepSequences, []Step{step})
-			continue
-		}
-		for j := 0; j < i; j++ {
-
-			if step.state {
-				// on
-				// prev := stepSequences[j][0]
-				// intersection := step.Intersect(prev)
-			} else {
-				// off
-
-			}
+func contains(cubes []Cube, cube Cube) bool {
+	for _, elem := range cubes {
+		// is subset of
+		if cube.IsIntersecting(elem) {
+			return true
 		}
 	}
+	return false
+}
 
-	total := 0
-	for _, seq := range stepSequences {
-		for _, step := range seq {
-			if step.state {
-				total += step.Size()
-			} else {
-				total -= step.Size()
+func (c Cuboid) FullInit(steps []Step) int64 {
+	var expanded []StepExpanded
+	for i, step := range steps {
+		if i == 0 {
+			// add first step as-is
+			expanded = append(expanded, StepExpanded{step, nil})
+			continue
+		}
+
+		var followUp []Cube
+		// correct for preceding steps
+		for j := 0; j < i; j++ {
+
+			if !expanded[j].state && !step.state {
+				// both are negative -> they don't impact each other
+				continue
+			}
+
+			// take their intersection
+			intersection, ok := steps[j].GetCube().Intersect(step.GetCube())
+			if !ok {
+				// no intersection
+				continue
+			}
+			// ignore duplicates
+			if !contains(followUp, intersection) {
+				followUp = append(followUp, intersection)
 			}
 		}
+		expanded = append(expanded, StepExpanded{step, followUp})
+	}
+
+	var total int64 = 0
+	for i, step := range expanded {
+		if step.state {
+			// on
+			total += step.Size()
+			for _, substep := range step.followUp {
+				total -= substep.Size()
+			}
+		} else {
+			// off
+			for _, substep := range step.followUp {
+				total -= substep.Size()
+			}
+		}
+		fmt.Println(i, step, total)
 	}
 	return total
 }
