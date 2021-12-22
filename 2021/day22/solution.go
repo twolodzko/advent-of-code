@@ -112,11 +112,6 @@ func (a Cube) Intersect(b Cube) (Cube, bool) {
 	return Cube{xyz[0], xyz[1], xyz[2]}, true
 }
 
-func (a Cube) IsIntersecting(b Cube) bool {
-	_, ok := a.Intersect(b)
-	return ok
-}
-
 type Step struct {
 	Cube
 	state bool
@@ -196,68 +191,71 @@ func (c Cuboid) CountActive() int {
 	return len(c.cubes)
 }
 
-type StepExpanded struct {
-	Step
-	followUp []Cube
-}
-
-func contains(cubes []Cube, cube Cube) bool {
-	for _, elem := range cubes {
-		// is subset of
-		if cube.IsIntersecting(elem) {
-			return true
-		}
-	}
-	return false
-}
-
 func (c Cuboid) FullInit(steps []Step) int64 {
-	var expanded []StepExpanded
-	for i, step := range steps {
-		if i == 0 {
-			// add first step as-is
-			expanded = append(expanded, StepExpanded{step, nil})
-			continue
+
+	var (
+		areas     []Cube
+		holes     []Cube
+		antiholes []Cube
+	)
+
+	for _, step := range steps {
+		cube := step.GetCube()
+		fmt.Println(cube)
+
+		if step.state {
+
+			// if intersects with hole, fill the hole not to subtract it twice
+			for _, hole := range holes {
+				intersection, ok := cube.Intersect(hole)
+				if ok {
+					fmt.Printf(" antihole => %v\n", intersection)
+					antiholes = append(antiholes, intersection)
+				}
+			}
+			// if intersects with other area, cut off the intersection
+			for _, area := range areas {
+				intersection, ok := cube.Intersect(area)
+				if ok {
+					fmt.Printf(" hole => %v\n", intersection)
+					holes = append(holes, intersection)
+				}
+			}
+			// add the area
+			areas = append(areas, cube)
+
+		} else {
+
+			// if intersects with hole, fill the hole not to subtract it twice
+			for _, hole := range holes {
+				intersection, ok := cube.Intersect(hole)
+				fmt.Printf(" antihole => %v\n", intersection)
+				if ok {
+					antiholes = append(antiholes, intersection)
+				}
+			}
+			// if intersects with area, punch a hole in the area
+			for _, area := range areas {
+				intersection, ok := cube.Intersect(area)
+				if ok {
+					fmt.Printf(" hole => %v\n", intersection)
+					holes = append(holes, intersection)
+				}
+			}
+
 		}
-
-		var followUp []Cube
-		// correct for preceding steps
-		for j := 0; j < i; j++ {
-
-			if !expanded[j].state && !step.state {
-				// both are negative -> they don't impact each other
-				continue
-			}
-
-			// take their intersection
-			intersection, ok := steps[j].GetCube().Intersect(step.GetCube())
-			if !ok {
-				// no intersection
-				continue
-			}
-			// ignore duplicates
-			if !contains(followUp, intersection) {
-				followUp = append(followUp, intersection)
-			}
-		}
-		expanded = append(expanded, StepExpanded{step, followUp})
+		fmt.Println()
 	}
 
 	var total int64 = 0
-	for i, step := range expanded {
-		if step.state {
-			// on
-			total += step.Size()
-			for _, substep := range step.followUp {
-				total -= substep.Size()
-			}
-		} else {
-			// off
-			for _, substep := range step.followUp {
-				total -= substep.Size()
-			}
-		}
-		fmt.Println(i, step, total)
+	for _, area := range areas {
+		total += area.Size()
+	}
+	for _, hole := range holes {
+		total -= hole.Size()
+	}
+	for _, antihole := range antiholes {
+		total += antihole.Size()
 	}
 	return total
 }
