@@ -111,7 +111,6 @@ func (r Region) Move(kind rune) [][]MaybeCucumber {
 	k := len(r.region[n-1])
 
 	new := r.Copy().region
-	// east
 	for i := 0; i < n; i++ {
 		for j := 0; j < k; j++ {
 			this := r.region[i][j]
