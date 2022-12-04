@@ -8,3 +8,23 @@ end
 function lines(input)
     return string.gmatch(input, "[^\n]*")
 end
+
+function chars(input)
+    return string.gmatch(input, ".")
+end
+
+function Set(list)
+    local set = {}
+    for _, l in ipairs(list) do
+        set[l] = true
+    end
+    return set
+end
+
+function arrayfromstring(str)
+    local arr = {}
+    for ch in string.gmatch(str, ".") do
+        table.insert(arr, ch)
+    end
+    return arr
+end
