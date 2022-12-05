@@ -28,3 +28,11 @@ function arrayfromstring(str)
     end
     return arr
 end
+
+function reverse(arr)
+    local reversed = {}
+    for i = #arr, 1, -1 do
+        table.insert(reversed, arr[i])
+    end
+    return reversed
+end
