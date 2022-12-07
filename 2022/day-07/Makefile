@@ -9,6 +9,7 @@ le = $(shell test $(1) -le $(2) 2>/dev/null; echo $$?)
 INPUTFILE := $(PWD)/example
 INPUTSIZE = $(firstword $(shell wc -l $(INPUTFILE)))
 LINENUMBER := 1
+NEXTLINE := $(shell expr $(LINENUMBER) + 1)
 LINE := $(shell head -n $(LINENUMBER) $(INPUTFILE) | tail -n 1)
 MAIN = tmp
 DIR := $(MAIN)
@@ -59,19 +60,19 @@ ifeq ($(LINE),)
 else ifeq ($(firstword $(LINE)),$)
 ifeq ($(word 2, $(LINE)),cd)
 ifeq ($(word 3, $(LINE)),/)
-	$(make) loop LINENUMBER=$(shell expr $(LINENUMBER) + 1) DIR=$(MAIN)
+	$(make) loop LINENUMBER=$(NEXTLINE) DIR=$(MAIN)
 else
-	$(make) loop LINENUMBER=$(shell expr $(LINENUMBER) + 1) DIR=$(shell cd $(DIR)/$(word 3, $(LINE)) && pwd)
+	$(make) loop LINENUMBER=$(NEXTLINE) DIR=$(shell cd $(DIR)/$(word 3, $(LINE)) && pwd)
 endif
 else ifeq ($(word 2, $(LINE)),ls)
-	$(make) loop LINENUMBER=$(shell expr $(LINENUMBER) + 1) DIR=$(DIR)
+	$(make) loop LINENUMBER=$(NEXTLINE) DIR=$(DIR)
 endif
 else ifeq ($(firstword $(LINE)),dir)
 	mkdir -p $(DIR)/$(word 2, $(LINE))
-	$(make) loop LINENUMBER=$(shell expr $(LINENUMBER) + 1) DIR=$(DIR)
+	$(make) loop LINENUMBER=$(NEXTLINE) DIR=$(DIR)
 else
 	echo $(firstword $(LINE)) > $(DIR)/$(word 2, $(LINE))
-	$(make) loop LINENUMBER=$(shell expr $(LINENUMBER) + 1) DIR=$(DIR)
+	$(make) loop LINENUMBER=$(NEXTLINE) DIR=$(DIR)
 endif
 
 .PHONY: dirs
