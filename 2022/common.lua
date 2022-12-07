@@ -36,3 +36,17 @@ function reverse(arr)
     end
     return reversed
 end
+
+function merge(t1, t2, check)
+    local out = {}
+    for k, v in pairs(t1) do
+        out[k] = v
+    end
+    for k, v in pairs(t2) do
+        if check and t1[k] then
+            error(string.format("duplicated key: %s", k))
+        end
+        out[k] = v
+    end
+    return out
+end
