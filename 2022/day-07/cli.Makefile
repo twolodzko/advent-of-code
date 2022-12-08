@@ -2,17 +2,18 @@ MAKEFLAGS += --no-print-directory --silent
 SHELL = bash
 INPUTFILE := example.txt
 MAIN = tmp
+SELF = cli.Makefile
 
 define make
-	$(MAKE) -f files.Makefile
+	$(MAKE) -f $(SELF)
 endef
 
 .PHONY: run
 run:
 	docker run --rm -it $$(docker build -q .) \
-		make -f files.Makefile solve INPUTFILE=example.txt
+		make -f $(SELF) solve INPUTFILE=example.txt
 	docker run --rm -it $$(docker build -q .) \
-		make -f files.Makefile solve INPUTFILE=problem.txt
+		make -f $(SELF) solve INPUTFILE=problem.txt
 
 .PHONY: solve
 solve: setup problem1 problem2

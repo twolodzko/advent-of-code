@@ -5,6 +5,4 @@ RUN apt-get update \
 
 COPY example.txt .
 COPY problem.txt .
-COPY files.Makefile  .
-
-CMD make -f files.Makefile
+COPY cli.Makefile  .
