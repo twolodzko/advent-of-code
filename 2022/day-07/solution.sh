@@ -21,8 +21,7 @@ paste \
     <( du -b "${MAIN}" | cut -f1 ) \
     <( du -b "${MAIN}" | cut -f2 | xargs -I % sh -c 'find % -mindepth 1 -type d | wc -l' ) \
 | awk '{ print ($1 - (4096 * ($2 + 1))) }' \
-| awk '{ if ($1 <= 100000) { print } }' \
-| awk '{ s += $1 } END { print s }'
+| awk '{ if ($1 <= 100000) { s += $1 } } END { print s }'
 
 # Problem 2
 
