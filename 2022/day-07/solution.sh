@@ -2,9 +2,9 @@
 set -e
 
 export MAIN=tmp
-export INPUTFILE=$1
+export INPUTFILE="$1"
 
-mkdir -p "${MAIN}" &&
+mkdir -p "${MAIN}"
 
 cat "${INPUTFILE}" \
 | grep -v '$ ls' \
