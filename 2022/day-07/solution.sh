@@ -4,6 +4,7 @@ set -e
 export MAIN=tmp
 export INPUTFILE="$1"
 
+rm -r "${MAIN}"
 mkdir -p "${MAIN}"
 
 cat "${INPUTFILE}" \
