@@ -27,15 +27,15 @@ paste \
 echo "Problem 2"
 
 paste \
-<( du -b "${MAIN}" | sort -k2 | awk '{ print $2 "\t" $1 }' ) \
-<( du -b "${MAIN}" | sort -k2 | cut -f2 | xargs -I % sh -c 'find % -mindepth 1 -type d | wc -l' ) \
-<( paste \
-        <( du -bs "${MAIN}" ) \
-        <( find "${MAIN}" -mindepth 1 -type d | wc -l ) \
-    | awk '{ print $1 - (($3 + 1) * 4096) }' \
-    | xargs yes 2> /dev/null \
-    | head -n "$( du -b "${MAIN}" | wc -l )" \
-    ) \
+    <( du -b "${MAIN}" | sort -k2 | awk '{ print $2 "\t" $1 }' ) \
+    <( du -b "${MAIN}" | sort -k2 | cut -f2 | xargs -I % sh -c 'find % -mindepth 1 -type d | wc -l' ) \
+    <( paste \
+            <( du -bs "${MAIN}" ) \
+            <( find "${MAIN}" -mindepth 1 -type d | wc -l ) \
+        | awk '{ print $1 - (($3 + 1) * 4096) }' \
+        | xargs yes 2> /dev/null \
+        | head -n "$( du -b "${MAIN}" | wc -l )" \
+        ) \
 | awk '{ print ($2 - (4096 * ($3 + 1))) "\t" $4 }' \
 | awk '{ if ( $1 >= (30000000 - (70000000 - $2))) { print } }' \
 | sort -k1 \
