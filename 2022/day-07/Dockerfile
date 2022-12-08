@@ -1,8 +1,5 @@
 FROM debian:buster-slim
 
-RUN apt-get update \
-    && apt-get install -y make
-
 COPY example.txt .
 COPY problem.txt .
-COPY cli.Makefile  .
+COPY solution.sh .
