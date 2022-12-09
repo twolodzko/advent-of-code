@@ -37,7 +37,7 @@ paste \
         | xargs yes 2> /dev/null \
         | head -n "$( wc -l "${SIZES}" | cut -d' ' -f1 )" \
     ) \
-| awk '{ print ($1 - (4096 * ($2 + 1))) "\t" $3 }' \
+| awk 'OFS="\t" { print ($1 - (4096 * ($2 + 1))) , $3 }' \
 | awk '{ if ($1 >= (30000000 - (70000000 - $2))) { print } }' \
 | sort -k1 \
 | head -n1 \
