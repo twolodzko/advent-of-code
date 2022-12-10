@@ -1,23 +1,9 @@
 require "common"
 
-local example1 = [[
-noop
-addx 3
-addx -5
-]]
-
-local function signalstrength(cycle, value)
-    if cycle >= 20 then
-        if (cycle - 20) % 40 == 0 then
-            return cycle * value
-        end
-    end
-end
-
 ClockCircuit = {}
 
-function ClockCircuit:new()
-    local clock = { cycle = 1, register = 1, strength = 0 }
+function ClockCircuit:new(comp)
+    local clock = { cycle = 1, register = 1, comp = comp }
     setmetatable(clock, self)
     self.__index = self
     return clock
@@ -25,58 +11,79 @@ end
 
 function ClockCircuit:next()
     self.cycle = self.cycle + 1
-    local strength = signalstrength(self.cycle, self.register)
-    if strength then
-        self.strength = self.strength + strength
-    end
+    self.comp:update(self)
 end
 
 function ClockCircuit:exec(cmd, val)
-    if cmd == "noop" then
-        self:next()
-    elseif cmd == "addx" then
-        self:next()
+    self:next()
+    if cmd == "addx" then
         self.register = self.register + val
         self:next()
-    else
+    elseif cmd ~= "noop" then
         error(string.format("invalid command: %s", cmd))
     end
 end
 
-local function eval(clock, code)
+function ClockCircuit:eval(code)
     local cmd, val = string.match(code, "([a-z]+)%s+(-?[0-9]+)")
     if val then
-        val = tonumber(val)
-        clock:exec(cmd, val)
+        self:exec(cmd, tonumber(val))
     else
-        clock:exec(code)
+        self:exec(code)
     end
 end
 
-function problem1(input)
-    local clock = ClockCircuit:new()
-    for line in lines(input) do
-        if line ~= "" then
-            eval(clock, line)
+StrengthCalculator = {}
+
+function StrengthCalculator:new()
+    local calc = { strength = 0 }
+    setmetatable(calc, self)
+    self.__index = self
+    return calc
+end
+
+function StrengthCalculator:update(clock)
+    if clock.cycle >= 20 then
+        if (clock.cycle - 20) % 40 == 0 then
+            local strength = clock.cycle * clock.register
+            if strength then
+                self.strength = self.strength + strength
+            end
         end
     end
-    return clock.strength
+end
+
+function StrengthCalculator:result()
+    return self.strength
+end
+
+function problem1(input)
+    local clock = ClockCircuit:new(StrengthCalculator:new())
+    for line in lines(input) do
+        if line ~= "" then
+            clock:eval(line)
+        end
+    end
+    return clock.comp:result()
 end
 
 assert(problem1(readfile("data/day-10-example.txt")) == 13140)
 print(problem1(readfile("data/day-10.txt")))
 
-CRT = ClockCircuit:new()
+Display = {}
 
-function CRT:next()
-    self.cycle = self.cycle + 1
-    local col = (self.cycle - 1) % 40
-    local row = (self.cycle - 1) // 40 + 1
-    if col >= self.register - 1 and col <= self.register + 1
+function Display:new()
+    local disp = { rows = {} }
+    setmetatable(disp, self)
+    self.__index = self
+    return disp
+end
+
+function Display:update(clock)
+    local col = (clock.cycle - 1) % 40
+    local row = (clock.cycle - 1) // 40
+    if col >= clock.register - 1 and col <= clock.register + 1
     then
-        if not self.rows then
-            self.rows = {}
-        end
         if not self.rows[row] then
             self.rows[row] = {}
         end
@@ -84,15 +91,11 @@ function CRT:next()
     end
 end
 
-function CRT:tostring()
+function Display:result()
     local out = ""
-    for i = 1, 6 do
+    for i = 0, 5 do
         for j = 0, 39 do
-            if self.rows[i][j] then
-                out = out .. "#"
-            else
-                out = out .. "."
-            end
+            out = out .. (self.rows[i][j] and "#" or ".")
         end
         out = out .. "\n"
     end
@@ -100,13 +103,13 @@ function CRT:tostring()
 end
 
 function problem2(input)
-    local crt = CRT:new()
+    local clock = ClockCircuit:new(Display:new())
     for line in lines(input) do
         if line ~= "" then
-            eval(crt, line)
+            clock:eval(line)
         end
     end
-    return crt:tostring()
+    return clock.comp:result()
 end
 
 print(problem2(readfile("data/day-10-example.txt")))
