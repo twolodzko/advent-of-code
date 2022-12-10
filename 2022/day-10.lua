@@ -19,17 +19,16 @@ function ClockCircuit:exec(cmd, val)
     if cmd == "addx" then
         self.register = self.register + val
         self:next()
-    elseif cmd ~= "noop" then
-        error(string.format("invalid command: %s", cmd))
     end
 end
 
-function ClockCircuit:eval(code)
-    local cmd, val = string.match(code, "([a-z]+)%s+(-?[0-9]+)")
-    if val then
-        self:exec(cmd, tonumber(val))
+function ClockCircuit:eval(cmd)
+    if cmd == "noop" then
+        self:exec(cmd)
     else
-        self:exec(code)
+        local val
+        cmd, val = string.match(cmd, "([a-z]+)%s+(-?[0-9]+)")
+        self:exec(cmd, tonumber(val))
     end
 end
 
@@ -43,12 +42,10 @@ function StrengthCalculator:new()
 end
 
 function StrengthCalculator:update(clock)
-    if clock.cycle >= 20 then
-        if (clock.cycle - 20) % 40 == 0 then
-            local strength = clock.cycle * clock.register
-            if strength then
-                self.strength = self.strength + strength
-            end
+    if (clock.cycle - 20) % 40 == 0 then
+        local strength = clock.cycle * clock.register
+        if strength then
+            self.strength = self.strength + strength
         end
     end
 end
