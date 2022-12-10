@@ -14,10 +14,10 @@ function ClockCircuit:next()
     self.comp:update(self)
 end
 
-function ClockCircuit:exec(cmd, val)
+function ClockCircuit:exec(cmd, arg)
     self:next()
     if cmd == "addx" then
-        self.register = self.register + val
+        self.register = self.register + arg
         self:next()
     end
 end
@@ -26,9 +26,9 @@ function ClockCircuit:eval(cmd)
     if cmd == "noop" then
         self:exec(cmd)
     else
-        local val
-        cmd, val = string.match(cmd, "([a-z]+)%s+(-?[0-9]+)")
-        self:exec(cmd, tonumber(val))
+        local arg
+        cmd, arg = string.match(cmd, "([a-z]+)%s+(-?[0-9]+)")
+        self:exec(cmd, tonumber(arg))
     end
 end
 
