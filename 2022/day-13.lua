@@ -100,19 +100,26 @@ local function insertsort(list, comp)
             j = j - 1
         end
     end
-    return list
 end
 
 do
-    assert(equal(insertsort({}, function(a, b)
+    local list = {}
+    insertsort(list, function(a, b)
         return a < b
-    end), {}))
-    assert(equal(insertsort({ 1 }, function(a, b)
+    end)
+    assert(equal(list, {}))
+
+    local list = { 1 }
+    insertsort(list, function(a, b)
         return a < b
-    end), { 1 }))
-    assert(equal(insertsort({ 3, 1, 2 }, function(a, b)
+    end)
+    assert(equal(list, { 1 }))
+
+    local list = { 3, 1, 2 }
+    insertsort(list, function(a, b)
         return a < b
-    end), { 1, 2, 3 }))
+    end)
+    assert(equal(list, { 1, 2, 3 }))
 end
 
 function problem2(input)
