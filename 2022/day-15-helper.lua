@@ -1,6 +1,27 @@
 require "day-15"
 
 local COVERED = "#"
+local SENSOR = "S"
+local BEACON = "B"
+
+local function makemap(sensors)
+    local map = {}
+    local p
+    for _, sensor in ipairs(sensors) do
+        p = sensor.position
+        if not map[p.x] then
+            map[p.x] = {}
+        end
+        map[p.x][p.y] = SENSOR
+
+        p = sensor.closest
+        if not map[p.x] then
+            map[p.x] = {}
+        end
+        map[p.x][p.y] = BEACON
+    end
+    return map
+end
 
 local function markcoverage(map, sensor)
     local function mark(x, y)
@@ -63,6 +84,26 @@ local function maptostr(map)
     return result
 end
 
+local function markboundary(map, sensor)
+    local function mark(x, y)
+        if not map[x] then
+            map[x] = {}
+        end
+        if not map[x][y] then
+            map[x][y] = "@"
+        end
+    end
+
+    local d = sensor.range
+    for y = sensor.position.y - d, sensor.position.y + d do
+        local minx, maxx = sensor:yrange(y)
+        mark(minx - 1, y)
+        mark(maxx + 1, y)
+    end
+    mark(sensor.position.x, sensor.position.y + d + 1)
+    mark(sensor.position.x, sensor.position.y - d - 1)
+end
+
 do
     local sensors = parse(example1)
     local map = makemap(sensors)
@@ -70,6 +111,10 @@ do
     print()
 
     markcoverage(map, sensors[7])
+    print(maptostr(map))
+    print()
+
+    markboundary(map, sensors[7])
     print(maptostr(map))
     print()
 end

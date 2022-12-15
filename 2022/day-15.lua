@@ -108,28 +108,6 @@ do
     assert(sensors[14].closest == Point(15, 3))
 end
 
-local SENSOR = "S"
-local BEACON = "B"
-
-function makemap(sensors)
-    local map = {}
-    local p
-    for _, sensor in ipairs(sensors) do
-        p = sensor.position
-        if not map[p.x] then
-            map[p.x] = {}
-        end
-        map[p.x][p.y] = SENSOR
-
-        p = sensor.closest
-        if not map[p.x] then
-            map[p.x] = {}
-        end
-        map[p.x][p.y] = BEACON
-    end
-    return map
-end
-
 function problem1(input, y)
     local sensors = parse(input)
     local mapslice = {}
@@ -168,9 +146,34 @@ end
 assert(problem1(example1, 10) == 26)
 print(problem1(readfile("data/day-15.txt"), 2000000))
 
--- function problem2(input)
---     local sensors = parse(input)
---     local map = makemap(sensors)
---     local lo = 0
---     local hi = 4000000
+-- local function boundary(sensor)
+--     local points = {}
+--     local d = sensor.range
+--     for y = sensor.position.y - d, sensor.position.y + d do
+--         local minx, maxx = sensor:yrange(y)
+--         table.insert(points, Point(minx - 1, y))
+--         table.insert(points, Point(maxx + 1, y))
+--     end
+--     table.insert(points, Point(sensor.position.x, sensor.position.y + d + 1))
+--     table.insert(points, Point(sensor.position.x, sensor.position.y - d - 1))
+--     return points
 -- end
+
+-- function problem2(input, max)
+--     local sensors = parse(input)
+--     local candidates = {}
+--     for _, sensor in ipairs(sensors) do
+--         for _, point in ipairs(boundary(sensor)) do
+--             if point.x >= 0 and point.y >= 0
+--                 and point.x <= max and point.y <= max
+--             then
+--                 table.insert(candidates, point)
+--             end
+--         end
+--     end
+--     print(#candidates)
+-- end
+
+-- problem2(readfile("data/day-15.txt"), 4000000)
+-- assert(problem2(example1) == 26)
+-- print(problem2(readfile("data/day-15.txt")))
