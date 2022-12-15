@@ -1,6 +1,6 @@
 require "common"
 
-local example1 = [[
+example1 = [[
 Sensor at x=2, y=18: closest beacon is at x=-2, y=15
 Sensor at x=9, y=16: closest beacon is at x=10, y=16
 Sensor at x=13, y=2: closest beacon is at x=15, y=3
@@ -72,13 +72,17 @@ end
 
 function Sensor:yrange(y)
     local dy = math.abs(self.position.y - y)
-    if dy < self.range then
+    if dy <= self.range then
         local dx = self.range - dy
-        return self.position - dx, self.position + dx
+        return self.position.x - dx, self.position.x + dx
     end
 end
 
-local function parse(input)
+function Sensor:sees(point)
+    return dist(self.position, point) <= self.range
+end
+
+function parse(input)
     local sensors = {}
     for line in lines(input) do
         if line ~= "" then
@@ -101,32 +105,8 @@ end
 
 local SENSOR = "S"
 local BEACON = "B"
-local COVERED = "#"
 
-local function markcoverage(map, sensor)
-    local function mark(p)
-        if not map[p.x] then
-            map[p.x] = {}
-        end
-        if not map[p.x][p.y] then
-            map[p.x][p.y] = COVERED
-        end
-    end
-
-    local d = dist(sensor.position, sensor.closest)
-    for x = 0, d do
-        for y = 0, d - x do
-            mark(sensor.position + Point(x, y))
-            mark(sensor.position - Point(x, y))
-        end
-        for y = x - d, 0 do
-            mark(sensor.position + Point(x, y))
-            mark(sensor.position - Point(x, y))
-        end
-    end
-end
-
-local function makemap(sensors)
+function makemap(sensors)
     local map = {}
     local p
     for _, sensor in ipairs(sensors) do
@@ -145,78 +125,45 @@ local function makemap(sensors)
     return map
 end
 
-local function limits(map)
-    local minx = math.maxinteger
-    local maxx = math.mininteger
-    local miny = math.maxinteger
-    local maxy = math.mininteger
-    for x, _ in pairs(map) do
-        if x < minx then
-            minx = x
-        end
-        if x > maxx then
-            maxx = x
-        end
-        for y, _ in pairs(map[x]) do
-            if y < miny then
-                miny = y
-            end
-            if y > maxy then
-                maxy = y
-            end
-        end
-    end
-    return minx, maxx, miny, maxy
-end
-
-local function maptostr(map)
-    local minx, maxx, miny, maxy = limits(map)
-    local result = ""
-    for y = miny, maxy do
-        local line = string.format("%2d ", y)
-        for x = minx, maxx do
-            local value = map[x] and map[x][y]
-            if not value then
-                line = line .. "."
-            else
-                line = line .. value
-            end
-        end
-        result = result .. line .. "\n"
-    end
-    return result
-end
-
--- do
---     local sensors = parse(example1)
---     local map = makemap(sensors)
---     print(maptostr(map))
---     print()
-
---     markcoverage(map, sensors[7])
---     print(maptostr(map))
---     print()
--- end
-
-function problem1(input, ypos)
+function problem1(input, y)
     local sensors = parse(input)
     local map = makemap(sensors)
+
+    local minx = math.maxinteger
+    local maxx = math.mininteger
     for _, sensor in ipairs(sensors) do
-        markcoverage(map, sensor)
+        local lo, hi = sensor:yrange(y)
+        if lo then
+            if lo < minx then
+                minx = lo
+            end
+            if hi > maxx then
+                maxx = hi
+            end
+        end
     end
-    -- print(maptostr(map))
 
     local count = 0
-    for _, row in pairs(map) do
-        for y, val in pairs(row) do
-            if y == ypos and val ~= BEACON then
-                count = count + 1
+    for x = minx, maxx do
+        if not map[x] or map[x][y] ~= BEACON then
+            for _, sensor in ipairs(sensors) do
+                local lo, hi = sensor:yrange(y)
+                if lo and x >= lo and x <= hi then
+                    count = count + 1
+                    break
+                end
             end
         end
     end
     return count
 end
 
-print(problem1(example1, 10))
 assert(problem1(example1, 10) == 26)
--- print(problem1(readfile("data/day-15.txt"), 2000000))
+print(problem1(readfile("data/day-15.txt"), 2000000))
+
+function problem2(input)
+    local sensors = parse(input)
+    local map = makemap(sensors)
+    local lo = 0
+    local hi = 4000000
+end
