@@ -79,8 +79,13 @@ function Sensor:yrange(y)
 end
 
 function Sensor:sees(point)
-    return dist(self.position, point) <= self.range
+    local lo, hi = self:yrange(point.y)
+    return lo and lo <= point.x and point.x <= hi
+    -- return dist(self.position, point) <= self.range
 end
+
+assert(Sensor:new(Point(8, 7), Point(2, 10)):sees(Point(2, 10)))
+assert(not Sensor:new(Point(8, 7), Point(2, 10)):sees(Point(2, 11)))
 
 function parse(input)
     local sensors = {}
@@ -127,17 +132,19 @@ end
 
 function problem1(input, y)
     local sensors = parse(input)
-    local map = makemap(sensors)
-
+    local mapslice = {}
     local minx = math.maxinteger
     local maxx = math.mininteger
     for _, sensor in ipairs(sensors) do
+        if sensor.closest.y == y then
+            mapslice[sensor.closest.x] = true
+        end
+
         local lo, hi = sensor:yrange(y)
         if lo then
             if lo < minx then
                 minx = lo
-            end
-            if hi > maxx then
+            elseif hi > maxx then
                 maxx = hi
             end
         end
@@ -145,10 +152,10 @@ function problem1(input, y)
 
     local count = 0
     for x = minx, maxx do
-        if not map[x] or map[x][y] ~= BEACON then
+        if not mapslice[x] then
+            local point = Point(x, y)
             for _, sensor in ipairs(sensors) do
-                local lo, hi = sensor:yrange(y)
-                if lo and x >= lo and x <= hi then
+                if sensor:sees(point) then
                     count = count + 1
                     break
                 end
@@ -161,9 +168,9 @@ end
 assert(problem1(example1, 10) == 26)
 print(problem1(readfile("data/day-15.txt"), 2000000))
 
-function problem2(input)
-    local sensors = parse(input)
-    local map = makemap(sensors)
-    local lo = 0
-    local hi = 4000000
-end
+-- function problem2(input)
+--     local sensors = parse(input)
+--     local map = makemap(sensors)
+--     local lo = 0
+--     local hi = 4000000
+-- end
