@@ -62,3 +62,25 @@ function equal(a1, a2)
     end
     return true
 end
+
+function Point(x, y)
+    local point = { x = x, y = y }
+    setmetatable(point, {
+        __eq = function(a, b)
+            return a.x == b.x and a.y == b.y
+        end,
+        __add = function(a, b)
+            return Point(a.x + b.x, a.y + b.y)
+        end,
+        __sub = function(a, b)
+            return Point(a.x - b.x, a.y - b.y)
+        end,
+        __mul = function(a, b)
+            return Point(a.x * b.x, a.y * b.y)
+        end,
+        __tostring = function(o)
+            return string.format("Point{%d, %d}", o.x, o.y)
+        end
+    })
+    return point
+end
