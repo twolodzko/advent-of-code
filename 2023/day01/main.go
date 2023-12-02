@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Part 1
 func extractNumbers(line string) int {
 	var x, y int
 	p := &x
@@ -20,6 +21,7 @@ func extractNumbers(line string) int {
 	return x*10 + y
 }
 
+// Part 2
 func extractNumbers2(line string) int {
 	var digits = []string{
 		"one",
@@ -70,7 +72,6 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		num := extractNumbers2(scanner.Text())
-		fmt.Println(num)
 		result += num
 	}
 	fmt.Println(result)

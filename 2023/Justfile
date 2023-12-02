@@ -1,0 +1,9 @@
+
+init NAME:
+    #!/bin/bash
+    mkdir {{NAME}}
+    cd {{NAME}}
+    go mod init {{NAME}}
+    go work use .
+    cp ../template ./main.go
+
