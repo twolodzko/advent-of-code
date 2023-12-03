@@ -16,10 +16,15 @@ func is_symbol(r rune) bool {
 }
 
 type Iter struct {
-	i, j       int
-	schematic  [][]rune
-	acc        []rune
-	has_symbol bool
+	i, j      int
+	schematic [][]rune
+	acc       []rune
+	symbols   map[Symbol]bool
+}
+
+type Symbol struct {
+	value rune
+	i, j  int
 }
 
 func (iter *Iter) has_next() bool {
@@ -27,9 +32,9 @@ func (iter *Iter) has_next() bool {
 		iter.i+1 < len(iter.schematic)
 }
 
-func (iter *Iter) Next() (int, bool) {
+func (iter *Iter) Next() (int, map[Symbol]bool, bool) {
 	if !iter.has_next() {
-		return 0, false
+		return 0, nil, false
 	}
 
 	if iter.j+1 < len(iter.schematic[iter.i]) {
@@ -53,8 +58,10 @@ func (iter *Iter) Next() (int, bool) {
 					iter.j+j >= len(iter.schematic[iter.i+i]) {
 					continue
 				}
-				if is_symbol(iter.schematic[iter.i+i][iter.j+j]) {
-					iter.has_symbol = true
+				r := iter.schematic[iter.i+i][iter.j+j]
+				if is_symbol(r) {
+					symbol := Symbol{r, iter.i + i, iter.j + j}
+					iter.symbols[symbol] = true
 				}
 			}
 		}
@@ -63,16 +70,59 @@ func (iter *Iter) Next() (int, bool) {
 		if err != nil {
 			panic(err)
 		}
-		iter.acc = make([]rune, 0)
+		symbols := iter.symbols
 
-		if iter.has_symbol {
-			// reset
-			iter.has_symbol = false
-			return num, true
-		}
+		// reset
+		iter.acc = make([]rune, 0)
+		iter.symbols = make(map[Symbol]bool)
+
+		return num, symbols, true
 	}
 
 	return iter.Next()
+}
+
+func part1(iter Iter) {
+	result := 0
+	for {
+		num, symbols, has_next := iter.Next()
+		if len(symbols) > 0 {
+			result += num
+		}
+		if !has_next {
+			break
+		}
+	}
+
+	fmt.Println(result)
+}
+
+func part2(iter Iter) {
+	gears := make(map[Symbol][]int)
+
+	for {
+		num, symbols, has_next := iter.Next()
+		for symbol, _ := range symbols {
+			if symbol.value == '*' {
+				gears[symbol] = append(gears[symbol], num)
+			}
+		}
+		if !has_next {
+			break
+		}
+	}
+
+	result := 0
+	for _, nums := range gears {
+		if len(nums) > 1 {
+			ratio := 1
+			for _, x := range nums {
+				ratio *= x
+			}
+			result += ratio
+		}
+	}
+	fmt.Println(result)
 }
 
 func main() {
@@ -90,15 +140,7 @@ func main() {
 		schematic = append(schematic, []rune(line))
 	}
 
-	iter := Iter{0, -1, schematic, nil, false}
-	result := 0
-	for {
-		num, has_next := iter.Next()
-		result += num
-		if !has_next {
-			break
-		}
-	}
-
-	fmt.Println(result)
+	iter := Iter{0, -1, schematic, nil, make(map[Symbol]bool)}
+	part1(iter)
+	part2(iter)
 }
