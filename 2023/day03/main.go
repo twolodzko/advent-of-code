@@ -18,8 +18,24 @@ func is_symbol(r rune) bool {
 type Iter struct {
 	i, j      int
 	schematic [][]rune
-	acc       []rune
-	symbols   map[Symbol]bool
+	cache     MaybePart
+}
+
+type MaybePart struct {
+	acc     []rune
+	symbols map[Symbol]bool
+}
+
+func NewMaybePart() MaybePart {
+	return MaybePart{
+		make([]rune, 0),
+		make(map[Symbol]bool),
+	}
+}
+
+func (p MaybePart) Unpack() (int, map[Symbol]bool, bool) {
+	num, err := strconv.Atoi(string(p.acc))
+	return num, p.symbols, len(p.symbols) > 0 && err == nil
 }
 
 type Symbol struct {
@@ -32,9 +48,9 @@ func (iter *Iter) has_next() bool {
 		iter.i+1 < len(iter.schematic)
 }
 
-func (iter *Iter) Next() (int, map[Symbol]bool, bool) {
+func (iter *Iter) Next() (MaybePart, bool) {
 	if !iter.has_next() {
-		return 0, nil, false
+		return iter.cache, false
 	}
 
 	if iter.j+1 < len(iter.schematic[iter.i]) {
@@ -46,7 +62,7 @@ func (iter *Iter) Next() (int, map[Symbol]bool, bool) {
 
 	this := iter.schematic[iter.i][iter.j]
 	if is_number(this) {
-		iter.acc = append(iter.acc, this)
+		iter.cache.acc = append(iter.cache.acc, this)
 
 		// check if any neighbor is symbol
 		for i := -1; i <= 1; i++ {
@@ -61,22 +77,17 @@ func (iter *Iter) Next() (int, map[Symbol]bool, bool) {
 				r := iter.schematic[iter.i+i][iter.j+j]
 				if is_symbol(r) {
 					symbol := Symbol{r, iter.i + i, iter.j + j}
-					iter.symbols[symbol] = true
+					iter.cache.symbols[symbol] = true
 				}
 			}
 		}
-	} else if len(iter.acc) > 0 {
-		num, err := strconv.Atoi(string(iter.acc))
-		if err != nil {
-			panic(err)
-		}
-		symbols := iter.symbols
+	} else if len(iter.cache.acc) > 0 {
+		cache := iter.cache
 
 		// reset
-		iter.acc = make([]rune, 0)
-		iter.symbols = make(map[Symbol]bool)
+		iter.cache = NewMaybePart()
 
-		return num, symbols, true
+		return cache, true
 	}
 
 	return iter.Next()
@@ -85,8 +96,8 @@ func (iter *Iter) Next() (int, map[Symbol]bool, bool) {
 func part1(iter Iter) {
 	result := 0
 	for {
-		num, symbols, has_next := iter.Next()
-		if len(symbols) > 0 {
+		part, has_next := iter.Next()
+		if num, _, ok := part.Unpack(); ok {
 			result += num
 		}
 		if !has_next {
@@ -101,10 +112,13 @@ func part2(iter Iter) {
 	gears := make(map[Symbol][]int)
 
 	for {
-		num, symbols, has_next := iter.Next()
-		for symbol, _ := range symbols {
-			if symbol.value == '*' {
-				gears[symbol] = append(gears[symbol], num)
+		part, has_next := iter.Next()
+
+		if num, symbols, ok := part.Unpack(); ok {
+			for symbol, _ := range symbols {
+				if symbol.value == '*' {
+					gears[symbol] = append(gears[symbol], num)
+				}
 			}
 		}
 		if !has_next {
@@ -140,7 +154,7 @@ func main() {
 		schematic = append(schematic, []rune(line))
 	}
 
-	iter := Iter{0, -1, schematic, nil, make(map[Symbol]bool)}
+	iter := Iter{0, -1, schematic, NewMaybePart()}
 	part1(iter)
 	part2(iter)
 }
