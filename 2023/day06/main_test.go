@@ -28,3 +28,46 @@ func Test_distance(t *testing.T) {
 		}
 	}
 }
+
+func Test_solve(t *testing.T) {
+	var testCases = []struct {
+		limit, record, lower, upper int
+	}{
+		{7, 9, 2, 5},
+	}
+	for _, tt := range testCases {
+		lower, upper := mod.Solve(tt.limit, tt.record)
+		if lower != tt.lower {
+			t.Errorf(
+				"For limit=%d and record=%d expected %d, got %d",
+				tt.limit, tt.record, tt.lower, lower,
+			)
+		}
+		if upper != tt.upper {
+			t.Errorf(
+				"For limit=%d and record=%d expected %d, got %d",
+				tt.limit, tt.record, tt.upper, upper,
+			)
+		}
+	}
+}
+
+func Test_solutions_count(t *testing.T) {
+	var testCases = []struct {
+		limit, record, count int
+	}{
+		{7, 9, 4},
+		{15, 40, 8},
+		{30, 200, 9},
+		{71530, 940200, 71503},
+	}
+	for _, tt := range testCases {
+		result := mod.SolutionsCount(tt.limit, tt.record)
+		if result != tt.count {
+			t.Errorf(
+				"For limit=%d and record=%d expected %d, got %d",
+				tt.limit, tt.record, tt.count, result,
+			)
+		}
+	}
+}

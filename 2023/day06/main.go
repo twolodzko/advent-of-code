@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +14,42 @@ func Distance(hold_time, limit int) int {
 		return 0
 	}
 	return hold_time * (limit - hold_time)
+}
+
+func Solve(limit, record int) (int, int) {
+	// record > hold_time * (limit - hold_time) = limit * hold_time - hold_time^2
+	// 0 = -record + limit * hold_time - hold_time^2
+	//
+	// 0 = c + bx + ax^2
+	// x = (-b +/- sqrt(b^2 - 4ac)) / 2a
+	//
+	// See:
+	// https://www.mathsisfun.com/algebra/quadratic-equation.html
+
+	b := float64(limit)
+	c := float64(record + 1)
+	upper := (-b - math.Sqrt(b*b-4*c)) / 2
+	lower := (-b + math.Sqrt(b*b-4*c)) / 2
+	return int(-lower), int(-upper)
+}
+
+func SolutionsCount(limit, record int) int {
+	lower, upper := Solve(limit, record)
+
+	// rounding error corrections
+	if Distance(lower-1, limit) > record {
+		lower--
+	} else if Distance(lower, limit) <= record && Distance(lower+1, limit) > record {
+		lower++
+	}
+
+	if Distance(upper+1, limit) > record {
+		upper++
+	} else if Distance(upper, limit) <= record && Distance(upper-1, limit) > record {
+		upper--
+	}
+
+	return upper - lower + 1
 }
 
 func parse1() ([]int, []int) {
@@ -53,13 +90,14 @@ func part1() {
 		time_limit := times[i]
 		distance_record := distances[i]
 
-		number_of_strategies := 0
-		for hold_time := 1; hold_time < time_limit; hold_time++ {
-			distance := Distance(hold_time, time_limit)
-			if distance > distance_record {
-				number_of_strategies++
-			}
-		}
+		// number_of_strategies := 0
+		// for hold_time := 1; hold_time < time_limit; hold_time++ {
+		// 	distance := Distance(hold_time, time_limit)
+		// 	if distance > distance_record {
+		// 		number_of_strategies++
+		// 	}
+		// }
+		number_of_strategies := SolutionsCount(time_limit, distance_record)
 		result *= number_of_strategies
 	}
 	fmt.Println(result)
@@ -92,13 +130,14 @@ func parse2() (int, int) {
 
 func part2() {
 	time_limit, distance_record := parse2()
-	number_of_strategies := 0
-	for hold_time := 1; hold_time < time_limit; hold_time++ {
-		distance := Distance(hold_time, time_limit)
-		if distance > distance_record {
-			number_of_strategies++
-		}
-	}
+	// number_of_strategies := 0
+	// for hold_time := 1; hold_time < time_limit; hold_time++ {
+	// 	distance := Distance(hold_time, time_limit)
+	// 	if distance > distance_record {
+	// 		number_of_strategies++
+	// 	}
+	// }
+	number_of_strategies := SolutionsCount(time_limit, distance_record)
 	fmt.Println(number_of_strategies)
 }
 
