@@ -100,7 +100,6 @@ func part1() {
 	for i := 0; i < n; i++ {
 		time_limit := times[i]
 		distance_record := distances[i]
-		// number_of_strategies := ExploreSolutions(time_limit, distance_record)
 		number_of_strategies := SolutionsCount(time_limit, distance_record)
 		result *= number_of_strategies
 	}
@@ -134,7 +133,6 @@ func parse2() (int, int) {
 
 func part2() {
 	time_limit, distance_record := parse2()
-	// number_of_strategies := ExploreSolutions(time_limit, distance_record)
 	number_of_strategies := SolutionsCount(time_limit, distance_record)
 	fmt.Println(number_of_strategies)
 }
