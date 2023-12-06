@@ -33,6 +33,17 @@ func Solve(limit, record int) (int, int) {
 	return int(-lower), int(-upper)
 }
 
+func ExploreSolutions(limit, record int) int {
+	count := 0
+	for hold_time := 1; hold_time < limit; hold_time++ {
+		distance := Distance(hold_time, limit)
+		if distance > record {
+			count++
+		}
+	}
+	return count
+}
+
 func SolutionsCount(limit, record int) int {
 	lower, upper := Solve(limit, record)
 
@@ -89,14 +100,7 @@ func part1() {
 	for i := 0; i < n; i++ {
 		time_limit := times[i]
 		distance_record := distances[i]
-
-		// number_of_strategies := 0
-		// for hold_time := 1; hold_time < time_limit; hold_time++ {
-		// 	distance := Distance(hold_time, time_limit)
-		// 	if distance > distance_record {
-		// 		number_of_strategies++
-		// 	}
-		// }
+		// number_of_strategies := ExploreSolutions(time_limit, distance_record)
 		number_of_strategies := SolutionsCount(time_limit, distance_record)
 		result *= number_of_strategies
 	}
@@ -130,13 +134,7 @@ func parse2() (int, int) {
 
 func part2() {
 	time_limit, distance_record := parse2()
-	// number_of_strategies := 0
-	// for hold_time := 1; hold_time < time_limit; hold_time++ {
-	// 	distance := Distance(hold_time, time_limit)
-	// 	if distance > distance_record {
-	// 		number_of_strategies++
-	// 	}
-	// }
+	// number_of_strategies := ExploreSolutions(time_limit, distance_record)
 	number_of_strategies := SolutionsCount(time_limit, distance_record)
 	fmt.Println(number_of_strategies)
 }

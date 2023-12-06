@@ -71,3 +71,24 @@ func Test_solutions_count(t *testing.T) {
 		}
 	}
 }
+
+func Test_compare_solutions(t *testing.T) {
+	var testCases = []struct {
+		limit, record int
+	}{
+		{7, 9},
+		{15, 40},
+		{30, 200},
+		{71530, 940200},
+	}
+	for _, tt := range testCases {
+		result := mod.SolutionsCount(tt.limit, tt.record)
+		explored_result := mod.ExploreSolutions(tt.limit, tt.record)
+		if result != explored_result {
+			t.Errorf(
+				"For limit=%d and record=%d result of exploration is %d, but the analytical result is %d",
+				tt.limit, tt.record, explored_result, result,
+			)
+		}
+	}
+}
