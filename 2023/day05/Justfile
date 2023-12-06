@@ -1,0 +1,2 @@
+run FILE:
+    go run main.go parser.go range.go {{FILE}}
