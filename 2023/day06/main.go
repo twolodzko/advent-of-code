@@ -28,9 +28,9 @@ func Solve(limit, record int) (int, int) {
 
 	b := float64(limit)
 	c := float64(record + 1)
-	upper := (-b - math.Sqrt(b*b-4*c)) / 2
-	lower := (-b + math.Sqrt(b*b-4*c)) / 2
-	return int(-lower), int(-upper)
+	upper := (-b - math.Sqrt(b*b-4*c)) / -2
+	lower := (-b + math.Sqrt(b*b-4*c)) / -2
+	return int(lower), int(upper)
 }
 
 func ExploreSolutions(limit, record int) int {
@@ -63,21 +63,20 @@ func SolutionsCount(limit, record int) int {
 	return upper - lower + 1
 }
 
-func parse1() ([]int, []int) {
-	parseLine := func(line string) []int {
-		line = strings.Split(line, ":")[1]
-
-		var result []int
-		for _, s := range strings.Fields(line) {
-			num, err := strconv.Atoi(s)
-			if err != nil {
-				panic(err)
-			}
-			result = append(result, num)
+func parseLine(line string) []int {
+	line = strings.Split(line, ":")[1]
+	var result []int
+	for _, s := range strings.Fields(line) {
+		num, err := strconv.Atoi(s)
+		if err != nil {
+			panic(err)
 		}
-		return result
+		result = append(result, num)
 	}
+	return result
+}
 
+func parse1() ([]int, []int) {
 	file, err := os.Open(os.Args[1])
 	if err != nil {
 		panic(err)
@@ -107,16 +106,6 @@ func part1() {
 }
 
 func parse2() (int, int) {
-	parseLine := func(line string) int {
-		line = strings.Split(line, ":")[1]
-		line = strings.Replace(line, " ", "", -1)
-		num, err := strconv.Atoi(line)
-		if err != nil {
-			panic(err)
-		}
-		return num
-	}
-
 	file, err := os.Open(os.Args[1])
 	if err != nil {
 		panic(err)
@@ -124,10 +113,15 @@ func parse2() (int, int) {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
+	var line string
 	scanner.Scan()
-	time := parseLine(scanner.Text())
+	line = strings.Replace(scanner.Text(), " ", "", -1)
+	time := parseLine(line)[0]
+
 	scanner.Scan()
-	distance := parseLine(scanner.Text())
+	line = strings.Replace(scanner.Text(), " ", "", -1)
+	distance := parseLine(line)[0]
+
 	return time, distance
 }
 
