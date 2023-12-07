@@ -15,23 +15,18 @@ func Distance(hold_time, limit int) int {
 	return hold_time * (limit - hold_time)
 }
 
-// Integer square root (using binary search)
-func Isqrt(y int) int {
-	// See https://en.wikipedia.org/wiki/Integer_square_root
-	var (
-		L int = 0
-		M int
-		R int = y + 1
-	)
-	for L != R-1 {
-		M = (L + R) / 2
-		if M*M <= y {
-			L = M
-		} else {
-			R = M
-		}
+// Integer square root
+func Isqrt(n int) int {
+	// See
+	// https://en.wikipedia.org/wiki/Methods_of_computing_square_roots
+	// https://en.wikipedia.org/wiki/Integer_square_root
+	x := n/2 + 1
+	y := 1
+	for x > y {
+		x = (x + y) / 2
+		y = n / x
 	}
-	return L
+	return x
 }
 
 func Solve(limit, record int) (int, int) {
