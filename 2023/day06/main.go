@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -16,6 +15,25 @@ func Distance(hold_time, limit int) int {
 	return hold_time * (limit - hold_time)
 }
 
+// Integer square root (using binary search)
+func Isqrt(y int) int {
+	// See https://en.wikipedia.org/wiki/Integer_square_root
+	var (
+		L int = 0
+		M int
+		R int = y + 1
+	)
+	for L != R-1 {
+		M = (L + R) / 2
+		if M*M <= y {
+			L = M
+		} else {
+			R = M
+		}
+	}
+	return L
+}
+
 func Solve(limit, record int) (int, int) {
 	// record > hold_time * (limit - hold_time) = limit * hold_time - hold_time^2
 	// 0 = -record + limit * hold_time - hold_time^2
@@ -26,11 +44,11 @@ func Solve(limit, record int) (int, int) {
 	// See:
 	// https://www.mathsisfun.com/algebra/quadratic-equation.html
 
-	b := float64(limit)
-	c := float64(record + 1)
-	upper := (-b - math.Sqrt(b*b-4*c)) / -2
-	lower := (-b + math.Sqrt(b*b-4*c)) / -2
-	return int(lower), int(upper)
+	b := limit
+	c := record + 1
+	upper := (-b - Isqrt(b*b-4*c)) / -2
+	lower := (-b + Isqrt(b*b-4*c)) / -2
+	return lower, upper
 }
 
 func ExploreSolutions(limit, record int) int {
