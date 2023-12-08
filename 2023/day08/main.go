@@ -79,6 +79,8 @@ func main() {
 	defer file.Close()
 
 	network_map := parse(file)
-	part1(network_map)
+	if _, ok := network_map.nodes["AAA"]; ok {
+		part1(network_map)
+	}
 	part2(network_map)
 }
