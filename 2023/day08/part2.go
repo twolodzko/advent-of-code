@@ -67,7 +67,8 @@ func part2(network_map Map) {
 	var cycle_lengths []int
 	for _, start := range start_nodes {
 		navigator := NewNavigator(start, network_map)
-		for navigator.Next() {
+		for navigator.HasNext() {
+			navigator.Next()
 		}
 		cycle_lengths = append(cycle_lengths, navigator.step)
 	}

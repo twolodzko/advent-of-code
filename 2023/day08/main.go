@@ -41,34 +41,32 @@ func parse(file *os.File) Map {
 }
 
 type Navigator struct {
-	node        string
-	step        int
-	network_map Map
+	current string
+	step    int
+	Map
 }
 
 func NewNavigator(start string, network_map Map) Navigator {
 	return Navigator{start, 0, network_map}
 }
 
-func (n *Navigator) Next() bool {
-	if n.node[2] == 'Z' {
-		return false
-	}
+func (n *Navigator) HasNext() bool {
+	return n.current[2] != 'Z'
+}
 
-	current, ok := n.network_map.nodes[n.node]
+func (n *Navigator) Next() {
+	current_node, ok := n.nodes[n.current]
 	if !ok {
-		panic(fmt.Sprintf("'%s' node does not exist", n.node))
+		panic(fmt.Sprintf("'%s' node does not exist", n.current))
 	}
 
-	idx := n.step % len(n.network_map.instructions)
-	if n.network_map.instructions[idx] == 'L' {
-		n.node = current.left
+	idx := n.step % len(n.instructions)
+	if n.instructions[idx] == 'L' {
+		n.current = current_node.left
 	} else {
-		n.node = current.right
+		n.current = current_node.right
 	}
 	n.step++
-
-	return true
 }
 
 func main() {
