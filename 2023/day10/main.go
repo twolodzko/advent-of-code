@@ -84,7 +84,9 @@ func (e Explorer) move(from Direction, i, j, distance int) {
 		if !this.IsFinal() {
 			north, south, east, west := this.Directions()
 
-			// the direction where we came from is not available
+			// the direction where we came from
+			// * if there is no entry, we end our trip
+			// * otherwise, we close the way back, so we move in one direction
 			switch from {
 			case North:
 				if !north {
@@ -147,9 +149,10 @@ func part1(explorer Explorer) {
 
 func part2(explorer Explorer) {
 	dist := explorer.distances
+	// so that we count 'S' as part of the path
 	dist[explorer.start_row][explorer.start_col] = 1
 
-	tmp := Matrix(len(dist), len(dist[0]))
+	// tmp := Matrix(len(dist), len(dist[0]))
 
 	result := 0
 	var (
@@ -157,10 +160,13 @@ func part2(explorer Explorer) {
 		prev   Pipe
 	)
 	for i, row := range dist {
+		// we always start outside
 		inside = false
 		for j, d := range row {
+			// non-zero distance means this is the valid path
 			if d > 0 {
 				this := explorer.grid[i][j]
+				// we check for boundaries of the polygon
 				switch this {
 				case '|':
 					inside = !inside
@@ -168,14 +174,18 @@ func part2(explorer Explorer) {
 				case 'L', 'F':
 					prev = this
 				case 'J':
+					// we ignore '-'
 					if prev == 'L' {
+						// upwards U-turn
 						prev = this
 					} else if prev == 'F' {
 						inside = !inside
 						prev = this
 					}
 				case '7':
+					// we ignore '-'
 					if prev == 'F' {
+						// downwards U-turn
 						prev = this
 					} else if prev == 'L' {
 						inside = !inside
@@ -184,7 +194,7 @@ func part2(explorer Explorer) {
 				}
 			} else if inside {
 				result++
-				tmp[i][j] = 1
+				// tmp[i][j] = 1
 			}
 		}
 	}
