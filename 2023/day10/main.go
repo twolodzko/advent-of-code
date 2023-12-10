@@ -90,16 +90,16 @@ type Explorer struct {
 	distances            [][]int
 }
 
-func Matrix[T int | bool](n, k int) [][]T {
-	matrix := make([][]T, n)
+func Matrix(n, k int) [][]int {
+	matrix := make([][]int, n)
 	for i := range matrix {
-		matrix[i] = make([]T, k)
+		matrix[i] = make([]int, k)
 	}
 	return matrix
 }
 
 func NewExplorer(grid [][]Pipe, start_row, start_col int) Explorer {
-	distances := Matrix[int](len(grid), len(grid[0]))
+	distances := Matrix(len(grid), len(grid[0]))
 	return Explorer{grid, start_row, start_col, distances}
 }
 
@@ -160,6 +160,45 @@ func (e Explorer) explore() {
 	e.move(West, e.start_row, e.start_col+1, 1)
 }
 
+func part1(explorer Explorer) {
+	largest := 0
+	for _, row := range explorer.distances {
+		for _, x := range row {
+			largest = max(largest, x)
+		}
+	}
+	fmt.Println(largest)
+}
+
+func part2(explorer Explorer) {
+
+	tmp := Matrix(len(explorer.grid), len(explorer.grid[0]))
+
+	result := 0
+	tmp_count := 0
+	should_count := false
+	for i, row := range explorer.grid {
+		should_count = false
+		tmp_count = 0
+		for j, x := range row {
+			if x.north || x.south {
+				result += tmp_count
+				tmp_count = 0
+				should_count = !should_count
+			} else if should_count && x.IsGround() {
+				tmp_count++
+				tmp[i][j] = 1
+			}
+		}
+	}
+
+	for _, row := range tmp {
+		fmt.Println(row)
+	}
+
+	fmt.Println(result)
+}
+
 func main() {
 	file, err := os.Open(os.Args[1])
 	if err != nil {
@@ -201,29 +240,6 @@ func main() {
 	// }
 	// fmt.Println()
 
-	largest := 0
-	for _, row := range explorer.distances {
-		for _, x := range row {
-			largest = max(largest, x)
-		}
-	}
-	fmt.Println(largest)
-
-	result := 0
-	tmp_count := 0
-	should_count := false
-	for _, row := range explorer.grid {
-		should_count = false
-		tmp_count = 0
-		for _, x := range row {
-			if !x.IsGround() {
-				result += tmp_count
-				tmp_count = 0
-				should_count = !should_count
-			} else if should_count {
-				tmp_count++
-			}
-		}
-	}
-	fmt.Println(result)
+	part1(explorer)
+	part2(explorer)
 }
