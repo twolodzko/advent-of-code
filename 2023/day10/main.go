@@ -6,82 +6,55 @@ import (
 	"os"
 )
 
-type Direction int
-
-func (this Direction) String() string {
-	switch this {
-	case North:
-		return "North"
-	case South:
-		return "South"
-	case East:
-		return "East"
-	default:
-		return "West"
-	}
-}
+type Direction string
 
 const (
-	North Direction = iota
-	South
-	West
-	East
+	North Direction = "North"
+	South Direction = "South"
+	West  Direction = "West"
+	East  Direction = "East"
 )
 
-type Pipe struct {
-	north, south, east, west bool
+type Pipe rune
+
+const (
+	Vertical      Pipe = '|'
+	Horizontal    Pipe = '-'
+	NorthEastBend Pipe = 'L'
+	NorthWestBend Pipe = 'J'
+	SouthWestBend Pipe = '7'
+	SouthEastBend Pipe = 'F'
+	Start         Pipe = 'S'
+	Ground        Pipe = '.'
+)
+
+func (this Pipe) Directions() (bool, bool, bool, bool) {
+	switch this {
+	case Vertical:
+		return true, true, false, false
+	case Horizontal:
+		return false, false, true, true
+	case NorthEastBend:
+		return true, false, true, false
+	case NorthWestBend:
+		return true, false, false, true
+	case SouthWestBend:
+		return false, true, false, true
+	case SouthEastBend:
+		return false, true, true, false
+	case Start:
+		return true, true, true, true
+	default:
+		return false, false, false, false
+	}
 }
 
 func (this Pipe) IsFinal() bool {
-	return (this.north == this.south) && (this.south == this.east) && (this.east == this.west)
-}
-
-func (this Pipe) IsGround() bool {
-	return !this.north && !this.south && !this.east && !this.west
+	return this == 'S' || this == '.'
 }
 
 func (this Pipe) String() string {
-	switch {
-	case this.north && this.south && !this.east && !this.west:
-		return "|"
-	case !this.north && !this.south && this.east && this.west:
-		return "-"
-	case this.north && !this.south && this.east && !this.west:
-		return "L"
-	case this.north && !this.south && !this.east && this.west:
-		return "J"
-	case !this.north && this.south && !this.east && this.west:
-		return "7"
-	case !this.north && this.south && this.east && !this.west:
-		return "F"
-	case this.north && this.south && this.east && this.west:
-		return "S"
-	default:
-		return "."
-	}
-}
-
-func parse(r rune) Pipe {
-	switch r {
-	case '|':
-		return Pipe{true, true, false, false}
-	case '-':
-		return Pipe{false, false, true, true}
-	case 'L':
-		return Pipe{true, false, true, false}
-	case 'J':
-		return Pipe{true, false, false, true}
-	case '7':
-		return Pipe{false, true, false, true}
-	case 'F':
-		return Pipe{false, true, true, false}
-	case '.':
-		return Pipe{false, false, false, false}
-	case 'S':
-		return Pipe{true, true, true, true}
-	default:
-		panic(fmt.Sprintf("invalid symbol: %v", r))
-	}
+	return string(this)
 }
 
 type Explorer struct {
@@ -109,28 +82,30 @@ func (e Explorer) move(from Direction, i, j, distance int) {
 		// fmt.Printf("moving from %-5.5v to %d %d (%v)\n", from, i, j, this)
 
 		if !this.IsFinal() {
+			north, south, east, west := this.Directions()
+
 			// the direction where we came from is not available
 			switch from {
 			case North:
-				if !this.north {
+				if !north {
 					return
 				}
-				this.north = false
+				north = false
 			case South:
-				if !this.south {
+				if !south {
 					return
 				}
-				this.south = false
+				south = false
 			case East:
-				if !this.east {
+				if !east {
 					return
 				}
-				this.east = false
+				east = false
 			case West:
-				if !this.west {
+				if !west {
 					return
 				}
-				this.west = false
+				west = false
 			}
 
 			if e.distances[i][j] == 0 {
@@ -140,13 +115,13 @@ func (e Explorer) move(from Direction, i, j, distance int) {
 			}
 
 			switch {
-			case this.north:
+			case north:
 				e.move(South, i-1, j, distance+1)
-			case this.south:
+			case south:
 				e.move(North, i+1, j, distance+1)
-			case this.west:
+			case west:
 				e.move(East, i, j-1, distance+1)
-			case this.east:
+			case east:
 				e.move(West, i, j+1, distance+1)
 			}
 		}
@@ -171,12 +146,35 @@ func part1(explorer Explorer) {
 }
 
 func part2(explorer Explorer) {
+	dist := explorer.distances
+	dist[explorer.start_row][explorer.start_col] = 1
 
-	tmp := Matrix(len(explorer.grid), len(explorer.grid[0]))
+	tmp := Matrix(len(dist), len(dist[0]))
 
-	for i, row := range explorer.distances {
-		for j, x := range row {
-			if x > 0 {
+	result := 0
+	var (
+		inside bool
+		prev   Pipe
+	)
+	for i, row := range dist {
+		inside = false
+		for j, d := range row {
+			if d > 0 {
+				this := explorer.grid[i][j]
+				switch this {
+				case '|':
+					inside = !inside
+					prev = this
+				case 'L', 'F':
+					prev = this
+				case 'J', '7':
+					if prev == 'L' || prev == 'F' {
+						inside = !inside
+						prev = this
+					}
+				}
+			} else if inside {
+				result++
 				tmp[i][j] = 1
 			}
 		}
@@ -186,7 +184,7 @@ func part2(explorer Explorer) {
 		fmt.Println(row)
 	}
 
-	// fmt.Println(result)
+	fmt.Println(result)
 }
 
 func main() {
@@ -206,7 +204,7 @@ func main() {
 		var row []Pipe
 		j = 0
 		for _, r := range line {
-			row = append(row, parse(r))
+			row = append(row, Pipe(r))
 			if r == 'S' {
 				start_row, start_col = i, j
 			}
@@ -220,10 +218,10 @@ func main() {
 
 	explorer.explore()
 
-	// for _, row := range explorer.grid {
-	// 	fmt.Println(row)
-	// }
-	// fmt.Println()
+	for _, row := range explorer.grid {
+		fmt.Println(row)
+	}
+	fmt.Println()
 
 	// for _, row := range explorer.distances {
 	// 	fmt.Println(row)
