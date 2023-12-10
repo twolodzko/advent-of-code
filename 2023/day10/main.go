@@ -174,19 +174,9 @@ func part2(explorer Explorer) {
 
 	tmp := Matrix(len(explorer.grid), len(explorer.grid[0]))
 
-	result := 0
-	tmp_count := 0
-	should_count := false
-	for i, row := range explorer.grid {
-		should_count = false
-		tmp_count = 0
+	for i, row := range explorer.distances {
 		for j, x := range row {
-			if x.north || x.south {
-				result += tmp_count
-				tmp_count = 0
-				should_count = !should_count
-			} else if should_count && x.IsGround() {
-				tmp_count++
+			if x > 0 {
 				tmp[i][j] = 1
 			}
 		}
@@ -196,7 +186,7 @@ func part2(explorer Explorer) {
 		fmt.Println(row)
 	}
 
-	fmt.Println(result)
+	// fmt.Println(result)
 }
 
 func main() {
