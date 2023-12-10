@@ -17,16 +17,18 @@ let rec forecast arr =
   else
     last arr + forecast (diff arr)
 
+let solve arr =
+  forecast arr |>
+  Int.to_string |>
+  print_string ;
+
+  print_newline () ;
+
+  forecast (List.rev arr) |>
+  Int.to_string |>
+  print_string ;
+
+  print_newline ()
+
 let () =
-  forecast [10;  13;  16;  21;  30] |>
-  Int.to_string |>
-  print_string ;
-
-  print_newline () ;
-
-  forecast (List.rev [10;  13;  16;  21;  30]) |>
-  Int.to_string |>
-  print_string ;
-
-  print_newline () ;
-
+  solve [10;  13;  16;  21;  30]
