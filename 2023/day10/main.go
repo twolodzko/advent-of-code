@@ -167,8 +167,17 @@ func part2(explorer Explorer) {
 					prev = this
 				case 'L', 'F':
 					prev = this
-				case 'J', '7':
-					if prev == 'L' || prev == 'F' {
+				case 'J':
+					if prev == 'L' {
+						prev = this
+					} else if prev == 'F' {
+						inside = !inside
+						prev = this
+					}
+				case '7':
+					if prev == 'F' {
+						prev = this
+					} else if prev == 'L' {
 						inside = !inside
 						prev = this
 					}
@@ -180,9 +189,9 @@ func part2(explorer Explorer) {
 		}
 	}
 
-	for _, row := range tmp {
-		fmt.Println(row)
-	}
+	// for _, row := range tmp {
+	// 	fmt.Println(row)
+	// }
 
 	fmt.Println(result)
 }
@@ -218,10 +227,10 @@ func main() {
 
 	explorer.explore()
 
-	for _, row := range explorer.grid {
-		fmt.Println(row)
-	}
-	fmt.Println()
+	// for _, row := range explorer.grid {
+	// 	fmt.Println(row)
+	// }
+	// fmt.Println()
 
 	// for _, row := range explorer.distances {
 	// 	fmt.Println(row)
