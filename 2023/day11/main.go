@@ -6,29 +6,6 @@ import (
 	"os"
 )
 
-type Tile rune
-
-const (
-	Space  Tile = '.'
-	Galaxy Tile = '#'
-)
-
-func (tile Tile) String() string {
-	return string(tile)
-}
-
-type SpaceMap struct {
-	image                [][]Tile
-	space_row, space_col []bool
-	galaxies             []Point
-}
-
-func (this SpaceMap) Print() {
-	for _, row := range this.image {
-		fmt.Println(row)
-	}
-}
-
 // Point defined in terms od 2D coordinates
 type Point struct {
 	x, y int
@@ -41,10 +18,6 @@ func Abs(value int) int {
 	return value
 }
 
-func (this Point) Add(other Point) Point {
-	return Point{this.x + other.x, this.y + other.y}
-}
-
 func (this Point) Sub(other Point) Point {
 	return Point{this.x - other.x, this.y - other.y}
 }
@@ -53,46 +26,11 @@ func (this Point) Abs() Point {
 	return Point{Abs(this.x), Abs(this.y)}
 }
 
-func (this SpaceMap) ExpandedSpaceBetween(a, b Point) (int, int) {
-	var low, high int
-
-	low, high = a.x, b.x
-	if low > high {
-		low, high = high, low
-	}
-	row_count := 0
-	if low+1 < high {
-		for _, expandable := range this.space_row[low+1 : high] {
-			if expandable {
-				row_count++
-			}
-		}
-	}
-
-	low, high = a.y, b.y
-	if low > high {
-		low, high = high, low
-	}
-	col_count := 0
-	if low+1 < high {
-		for _, expandable := range this.space_col[low+1 : high] {
-			if expandable {
-				col_count++
-			}
-		}
-	}
-
-	return row_count, col_count
-}
-
-// Taxicab distance between two points
-func (this Point) Distance(other Point) int {
-	return Abs(this.x-other.x) + Abs(this.y-other.y)
-}
-
 // Distance corrected for the expanded space
-func (this SpaceMap) WeightedDistance(a, b Point, weight int) int {
-	row_space, col_space := this.ExpandedSpaceBetween(a, b)
+func (m SpaceMap) WeightedDistance(a, b Point, weight int) int {
+	row_space := space_between(a.x, b.x, m.galaxy_row)
+	col_space := space_between(a.y, b.y, m.galaxy_col)
+
 	// Taxicab distance is:
 	// dist(A,B) = |A_1 - B_1| + |A_2 + B_2|
 
@@ -113,82 +51,70 @@ func (this SpaceMap) WeightedDistance(a, b Point, weight int) int {
 	return (d.x - row_space) + row_space*weight + (d.y - col_space) + col_space*weight
 }
 
-func Galaxies(image [][]Tile) []Point {
-	var galaxies []Point
-	for i := 0; i < len(image); i++ {
-		for j := 0; j < len(image[i]); j++ {
-			this := image[i][j]
-			if this == Galaxy {
-				galaxies = append(galaxies, Point{i, j})
-			}
-		}
-	}
-	return galaxies
+type SpaceMap struct {
+	galaxies               []Point
+	galaxy_row, galaxy_col []bool
 }
 
-func ExpandableSpace(image [][]Tile) ([]bool, []bool) {
-	space_row := make([]bool, len(image))
-	for i := 0; i < len(image); i++ {
-		all_space := true
-		for j := 0; j < len(image[i]); j++ {
-			if image[i][j] != '.' {
-				all_space = false
-			}
-		}
-		if all_space {
-			space_row[i] = true
-		}
-	}
-
-	space_col := make([]bool, len(image[0]))
-	for j := 0; j < len(image[0]); j++ {
-		all_space := true
-		for i := 0; i < len(image); i++ {
-			if image[i][j] != '.' {
-				all_space = false
-			}
-		}
-		if all_space {
-			space_col[j] = true
-		}
-	}
-
-	return space_row, space_col
-}
-
-func parseLine(line string) []Tile {
-	var row []Tile
-	for _, r := range line {
-		tile := Tile(r)
-		row = append(row, tile)
-	}
-	return row
-}
-
-func parse(file *os.File) SpaceMap {
+func Parse(file *os.File) SpaceMap {
 	scanner := bufio.NewScanner(file)
 
-	var image [][]Tile
+	scanner.Scan()
+	line := scanner.Text()
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		row := parseLine(line)
-		image = append(image, row)
+	var (
+		galaxies   []Point
+		galaxy_row []bool
+		i          int
+	)
+	galaxy_col := make([]bool, len(line))
+
+	for {
+		galaxy_row = append(galaxy_row, false)
+
+		for j, r := range line {
+			if r == '#' {
+				galaxies = append(galaxies, Point{i, j})
+				galaxy_row[i] = true
+				galaxy_col[j] = true
+			}
+		}
+
+		if !scanner.Scan() {
+			break
+		}
+		line = scanner.Text()
+		i++
 	}
 
-	galaxies := Galaxies(image)
-	space_row, space_col := ExpandableSpace(image)
-
-	return SpaceMap{image, space_row, space_col, galaxies}
+	return SpaceMap{galaxies, galaxy_row, galaxy_col}
 }
 
-func TotalDistance(space_map SpaceMap, weight int) int {
+func space_between(low, high int, any_galaxies []bool) int {
+	if low > high {
+		low, high = high, low
+	}
+	// don't include lower bound
+	low++
+
+	count := 0
+	if low < high {
+		for _, has_galaxy := range any_galaxies[low:high] {
+			if !has_galaxy {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func (m SpaceMap) TotalDistance(weight int) int {
 	result := 0
-	for i := 0; i < len(space_map.galaxies); i++ {
-		for j := i + 1; j < len(space_map.galaxies); j++ {
-			a := space_map.galaxies[i]
-			b := space_map.galaxies[j]
-			result += space_map.WeightedDistance(a, b, weight)
+	for i := 0; i < len(m.galaxies); i++ {
+		for j := i + 1; j < len(m.galaxies); j++ {
+			a := m.galaxies[i]
+			b := m.galaxies[j]
+			result += m.WeightedDistance(a, b, weight)
 		}
 	}
 	return result
@@ -201,11 +127,10 @@ func main() {
 	}
 	defer file.Close()
 
-	space_map := parse(file)
-	// space_map.Print()
+	space_map := Parse(file)
 
-	fmt.Println(TotalDistance(space_map, 2))
-	fmt.Println(TotalDistance(space_map, 10))
-	fmt.Println(TotalDistance(space_map, 100))
-	fmt.Println(TotalDistance(space_map, 1000000))
+	fmt.Println(space_map.TotalDistance(2))
+	fmt.Println(space_map.TotalDistance(10))
+	fmt.Println(space_map.TotalDistance(100))
+	fmt.Println(space_map.TotalDistance(1000000))
 }
