@@ -26,31 +26,6 @@ func (this Point) Abs() Point {
 	return Point{Abs(this.x), Abs(this.y)}
 }
 
-// Distance corrected for the expanded space
-func (m SpaceMap) WeightedDistance(a, b Point, weight int) int {
-	row_space := space_between(a.x, b.x, m.galaxy_row)
-	col_space := space_between(a.y, b.y, m.galaxy_col)
-
-	// Taxicab distance is:
-	// dist(A,B) = |A_1 - B_1| + |A_2 + B_2|
-
-	// We create D = |A - B|, where A, B, D are points. D is like the
-	// distance before summing the dimensions.
-	d := b.Sub(a).Abs()
-
-	// The space expansion correction means that the absolute difference
-	// |A_i - B_i| is adjusted by some expansion factor equal to w times
-	// the number of empty space fields between them. It becomes:
-	//
-	//   #non_empty_points + w * #empty_space_points.
-	//
-	// The same is applied to both dimensions.
-	// Since for the distance we care is only about the absolute differences,
-	// we can create the D = |A - B| point, re-scale it's coordinates
-	// accordingly, and sum them.
-	return (d.x - row_space) + row_space*weight + (d.y - col_space) + col_space*weight
-}
-
 type SpaceMap struct {
 	galaxies               []Point
 	galaxy_row, galaxy_col []bool
@@ -106,6 +81,31 @@ func space_between(low, high int, any_galaxies []bool) int {
 		}
 	}
 	return count
+}
+
+// Distance corrected for the expanded space
+func (m SpaceMap) WeightedDistance(a, b Point, weight int) int {
+	row_space := space_between(a.x, b.x, m.galaxy_row)
+	col_space := space_between(a.y, b.y, m.galaxy_col)
+
+	// Taxicab distance is:
+	// dist(A,B) = |A_1 - B_1| + |A_2 + B_2|
+
+	// We create D = |A - B|, where A, B, D are points. D is like the
+	// distance before summing the dimensions.
+	d := b.Sub(a).Abs()
+
+	// The space expansion correction means that the absolute difference
+	// |A_i - B_i| is adjusted by some expansion factor equal to w times
+	// the number of empty space fields between them. It becomes:
+	//
+	//   #non_empty_points + w * #empty_space_points.
+	//
+	// The same is applied to both dimensions.
+	// Since for the distance we care is only about the absolute differences,
+	// we can create the D = |A - B| point, re-scale it's coordinates
+	// accordingly, and sum them.
+	return (d.x - row_space) + row_space*weight + (d.y - col_space) + col_space*weight
 }
 
 func (m SpaceMap) TotalDistance(weight int) int {
