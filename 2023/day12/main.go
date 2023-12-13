@@ -29,14 +29,6 @@ type Pattern struct {
 	groups  []int
 }
 
-type Node struct {
-	prefix, size int
-}
-
-func (this Node) Size() int {
-	return this.prefix + this.size
-}
-
 func (this Pattern) Matches(start, end int) bool {
 	if end > len(this.pattern) {
 		return false
@@ -97,20 +89,6 @@ func (this Pattern) CountArrangements() int {
 		return 1
 	}
 	return this.Explore(0, []int{})
-}
-
-func ToStringJoined[T any](arr []T, sep string) string {
-	var tmp []string
-	for _, x := range arr {
-		tmp = append(tmp, fmt.Sprint(x))
-	}
-	return strings.Join(tmp, sep)
-}
-
-func (this Pattern) String() string {
-	pattern := ToStringJoined(this.pattern, "")
-	groups := ToStringJoined(this.groups, ",")
-	return fmt.Sprintf("%s %s", pattern, groups)
 }
 
 func ParseSprings(line string) []Spring {
