@@ -16,10 +16,6 @@ const (
 	Unknown     Spring = '?'
 )
 
-func (this Spring) Matches(other Spring) bool {
-	return this == Unknown || this == other
-}
-
 func (this Spring) String() string {
 	return string(this)
 }
@@ -46,21 +42,11 @@ func (this Pattern) Matches(start, end int) bool {
 
 func (this Pattern) Explore(start int, positions []int) int {
 	if len(this.groups) == len(positions) {
-		group := 0
-		for i := 0; i < len(this.pattern); i++ {
-			if group >= len(this.groups) {
-				if this.pattern[i] == Damaged {
-					return 0
-				}
-			} else if i < positions[group] {
-				if this.pattern[i] == Damaged {
-					return 0
-				}
-			} else if i >= positions[group]+this.groups[group] {
-				if this.pattern[i] == Damaged {
-					return 0
-				}
-				group++
+		// check if there is no excess damaged springs
+		last := len(positions) - 1
+		for i := positions[last] + this.groups[last]; i < len(this.pattern); i++ {
+			if this.pattern[i] == Damaged {
+				return 0
 			}
 		}
 		return 1
@@ -76,11 +62,15 @@ func (this Pattern) Explore(start int, positions []int) int {
 		if this.Matches(i, end) {
 			count += this.Explore(end+1, append(positions, i))
 		}
+		if this.pattern[i] == Damaged {
+			// this needs to be start of a group
+			break
+		}
 	}
 	return count
 }
 
-func (this Pattern) CountArrangements() int {
+func (this Pattern) Count() int {
 	min_size := max(0, len(this.groups)-1)
 	for _, n := range this.groups {
 		min_size += n
@@ -124,14 +114,6 @@ func ParseRow(line string) Pattern {
 	fields := strings.Fields(line)
 	pattern := ParseSprings(fields[0])
 	groups := ParseGroups(fields[1])
-
-	var damaged int
-	for _, x := range pattern {
-		if x == Damaged {
-			damaged++
-		}
-	}
-
 	return Pattern{pattern, groups}
 }
 
@@ -148,7 +130,7 @@ func part1() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		pattern := ParseRow(line)
-		arrangements := pattern.CountArrangements()
+		arrangements := pattern.Count()
 		result += arrangements
 		// fmt.Printf("%s - %d arrangements\n", line, arrangements)
 	}
@@ -181,7 +163,7 @@ func part2() {
 		line := scanner.Text()
 		line = repeat5(line)
 		pattern := ParseRow(line)
-		arrangements := pattern.CountArrangements()
+		arrangements := pattern.Count()
 		result += arrangements
 		// fmt.Printf("%s - %d arrangements\n", line, arrangements)
 	}
