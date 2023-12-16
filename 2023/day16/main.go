@@ -110,6 +110,7 @@ func (this BeamPaths) Next(from From) []From {
 
 func (this BeamPaths) Explore(from From) {
 	if _, ok := this.memory[from]; ok {
+		// so we do not hit infinite loop
 		return
 	} else {
 		this.memory[from] = true
@@ -157,8 +158,7 @@ func parse(scanner *bufio.Scanner) [][]Tile {
 	return grid
 }
 
-func part1(grid [][]Tile) {
-	energized := Simulate(grid, From{0, -1, Left})
+func count(energized [][]bool) int {
 	count := 0
 	for _, row := range energized {
 		for _, x := range row {
@@ -167,56 +167,35 @@ func part1(grid [][]Tile) {
 			}
 		}
 	}
-	fmt.Println(count)
+	return count
+}
+
+func part1(grid [][]Tile) {
+	energized := Simulate(grid, From{0, -1, Left})
+	fmt.Println(count(energized))
 }
 
 func part2(grid [][]Tile) {
-	var (
-		count, max int
-		energized  [][]bool
-	)
-
+	best := 0
 	for i := 0; i < len(grid); i++ {
 		for _, from := range []From{
 			{i, -1, Left},
 			{i, len(grid[0]), Right},
 		} {
-			energized = Simulate(grid, from)
-			count = 0
-			for _, row := range energized {
-				for _, x := range row {
-					if x {
-						count++
-					}
-				}
-			}
-			if max < count {
-				max = count
-			}
+			energized := Simulate(grid, from)
+			best = max(best, count(energized))
 		}
 	}
-
 	for j := 0; j < len(grid[0]); j++ {
 		for _, from := range []From{
 			{-1, j, Down},
 			{len(grid), j, Up},
 		} {
-			energized = Simulate(grid, from)
-			count = 0
-			for _, row := range energized {
-				for _, x := range row {
-					if x {
-						count++
-					}
-				}
-			}
-			if max < count {
-				max = count
-			}
+			energized := Simulate(grid, from)
+			best = max(best, count(energized))
 		}
 	}
-
-	fmt.Println(max)
+	fmt.Println(best)
 }
 
 func main() {
