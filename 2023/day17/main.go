@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"cmp"
 	"fmt"
 	"math"
 	"os"
+	"slices"
 )
 
 type Direction string
@@ -116,7 +118,7 @@ func (this *PathFinder) Explore(point Point) {
 		}
 
 		loss = point.loss + this.heat[i][j]
-		if loss < this.min_loss[i][j] {
+		if loss <= this.min_loss[i][j] {
 			this.min_loss[i][j] = loss
 		} else {
 			// other variation already reached it with smaller loss
@@ -128,50 +130,62 @@ func (this *PathFinder) Explore(point Point) {
 	}
 }
 
+func (this PathFinder) Final() (int, int) {
+	return len(this.heat) - 1, len(this.heat[0]) - 1
+}
+
 func (this PathFinder) IsFinal(point Point) bool {
-	return point.i == len(this.heat)-1 && point.j == len(this.heat[0])-1
+	i, j := this.Final()
+	return point.i == i && point.j == j
 }
 
-// Find index of the candidate point with smallest heat loss
-func (this *PathFinder) Next() int {
-	var (
-		index int
-		best  int = math.MaxInt
-	)
-	for i, candidate := range this.next {
-		// we reached the destination
-		if this.IsFinal(candidate) {
-			return i
-		}
+// // Find index of the candidate point with smallest heat loss
+// func (this *PathFinder) Next() int {
+// 	var (
+// 		index int
+// 		best  int = math.MaxInt
+// 	)
+// 	for i, candidate := range this.next {
+// 		if candidate.loss < best {
+// 			index = i
+// 			best = candidate.loss
+// 		}
+// 	}
+// 	return index
+// }
 
-		if candidate.loss < best {
-			index = i
-			best = candidate.loss
-		}
-	}
-	return index
-}
-
-func pop[T any](arr []T, index int) (T, []T) {
-	if index >= len(arr) {
-		return arr[index], arr[:index]
-	} else {
-		return arr[index], append(arr[:index], arr[index+1:]...)
-	}
-}
+// func pop[T any](arr []T, index int) (T, []T) {
+// 	if index+1 > len(arr) {
+// 		return arr[index], arr[:index]
+// 	} else {
+// 		return arr[index], append(arr[:index], arr[index+1:]...)
+// 	}
+// }
 
 func (this *PathFinder) FindPath() int {
 	var current Point
 	for {
-		// fmt.Println(this.current)
-		fmt.Println(this.next)
+		slices.SortFunc(this.next, func(a, b Point) int {
+			return cmp.Compare(a.loss, b.loss)
+		})
 
-		index := this.Next()
-		current, this.next = pop(this.next, index)
+		// fmt.Println(current)
+		// fmt.Println(this.next)
+
+		// index := this.Next()
+		// current, this.next = pop(this.next, index)
+
+		current = this.next[0]
+		this.next = this.next[1:]
 
 		if this.IsFinal(current) {
 			return current.loss
 		}
+
+		// if len(this.next) == 0 {
+		// 	i, j := this.Final()
+		// 	return this.min_loss[i][j]
+		// }
 
 		this.Explore(current)
 	}
@@ -205,7 +219,7 @@ func main() {
 	finder := NewPathFinder(grid)
 	fmt.Println(finder.FindPath())
 
-	// for _, row := range finder.min_loss {
-	// 	fmt.Println(row)
-	// }
+	for _, row := range finder.min_loss {
+		fmt.Println(row)
+	}
 }
