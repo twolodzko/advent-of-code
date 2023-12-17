@@ -69,19 +69,18 @@ func (this Losses) Min() int {
 }
 
 func NewPathFinder(heat [][]int) PathFinder {
+	init := heat[0][0]
 	loss := make(map[State]int)
-	// for _, direction := range Directions {
-	// 	loss[State{0, 0, direction, 1}] = heat[0][0]
-	// }
-
+	for _, direction := range Directions {
+		loss[State{0, 0, direction, 1}] = init
+	}
 	next := []Candidate{
-		{State{0, 1, Right, 1}, heat[0][1]},
-		{State{1, 0, Down, 1}, heat[1][0]},
+		{State{0, 1, Right, 0}, init + heat[0][1]},
+		{State{1, 0, Down, 0}, init + heat[1][0]},
 	}
 	for _, candidate := range next {
 		loss[candidate.State] = candidate.loss
 	}
-
 	return PathFinder{heat, loss, next}
 }
 
@@ -97,6 +96,13 @@ func (this *PathFinder) Explore(from Candidate) {
 		}
 
 		current := State{from.i, from.j, direction, 1}
+		if from.Direction == direction {
+			current.count = from.count + 1
+			// too many moves in the same direction
+			if current.count > 3 {
+				continue
+			}
+		}
 
 		switch direction {
 		case Up:
@@ -121,16 +127,8 @@ func (this *PathFinder) Explore(from Candidate) {
 			}
 		}
 
-		if from.Direction == direction {
-			current.count = from.count + 1
-			// too many moves in the same direction
-			if current.count > 3 {
-				continue
-			}
-		}
-
 		loss := from.loss + this.heat[current.i][current.j]
-		if prev, ok := this.loss[current]; ok && prev < loss {
+		if prev, ok := this.loss[current]; ok && prev <= loss {
 			continue
 		}
 
@@ -140,7 +138,9 @@ func (this *PathFinder) Explore(from Candidate) {
 }
 
 func (this PathFinder) Bounds() (int, int) {
-	return len(this.heat) - 1, len(this.heat[0]) - 1
+	n := len(this.heat) - 1
+	k := len(this.heat[n]) - 1
+	return n, k
 }
 
 func (this PathFinder) MinLossAt(i, j int) int {
@@ -168,9 +168,9 @@ func (this PathFinder) FinalLoss() int {
 func (this *PathFinder) FindPath() {
 	var current Candidate
 	for {
-		// if len(this.next) == 0 {
-		// 	return
-		// }
+		if len(this.next) == 0 {
+			return
+		}
 
 		slices.SortFunc(this.next, func(a, b Candidate) int {
 			return cmp.Compare(a.loss, b.loss)
@@ -179,14 +179,29 @@ func (this *PathFinder) FindPath() {
 		current = this.next[0]
 		this.next = this.next[1:]
 
-		if this.IsFinal(current.State) {
-			return
-		}
+		// if this.IsFinal(current.State) {
+		// 	return
+		// }
 
 		// fmt.Println(current)
 		// fmt.Println(this.next)
 
 		this.Explore(current)
+	}
+}
+
+func (this PathFinder) Show() {
+	max_i, max_j := this.Bounds()
+	for i := 0; i <= max_i; i++ {
+		for j := 0; j <= max_j; j++ {
+			loss := this.MinLossAt(i, j)
+			if loss == math.MaxInt {
+				fmt.Print("  ? ")
+			} else {
+				fmt.Printf("%3.d ", loss)
+			}
+		}
+		fmt.Println()
 	}
 }
 
@@ -214,19 +229,7 @@ func main() {
 	finder := NewPathFinder(grid)
 
 	finder.FindPath()
-
-	max_i, max_j := finder.Bounds()
-	for i := 0; i <= max_i; i++ {
-		for j := 0; j <= max_j; j++ {
-			loss := finder.MinLossAt(i, j)
-			if loss == math.MaxInt {
-				fmt.Print("  ? ")
-			} else {
-				fmt.Printf("%3.d ", loss)
-			}
-		}
-		fmt.Println()
-	}
+	finder.Show()
 
 	fmt.Println(finder.FinalLoss())
 }
