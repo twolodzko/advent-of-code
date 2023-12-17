@@ -74,6 +74,8 @@ func NewPathFinder(grid [][]int) PathFinder {
 // Check where we can go from this point
 func (this *PathFinder) Explore(point Point) {
 	var i, j, count, loss int
+	max_i, max_j := this.Bounds()
+
 	for _, direction := range []Direction{Left, Right, Up, Down} {
 
 		if point.direction.IsReverse(direction) {
@@ -92,7 +94,7 @@ func (this *PathFinder) Explore(point Point) {
 			}
 		case Down:
 			i++
-			if i > len(this.heat)-1 {
+			if i > max_i {
 				continue
 			}
 		case Left:
@@ -102,7 +104,7 @@ func (this *PathFinder) Explore(point Point) {
 			}
 		case Right:
 			j++
-			if j > len(this.heat[0])-1 {
+			if j > max_j {
 				continue
 			}
 		}
@@ -110,7 +112,7 @@ func (this *PathFinder) Explore(point Point) {
 		if point.direction == direction {
 			count = point.count + 1
 			// too many moves in the same direction
-			if count >= 3 {
+			if count > 3 {
 				continue
 			}
 		} else {
@@ -130,39 +132,21 @@ func (this *PathFinder) Explore(point Point) {
 	}
 }
 
-func (this PathFinder) Final() (int, int) {
+func (this PathFinder) Bounds() (int, int) {
 	return len(this.heat) - 1, len(this.heat[0]) - 1
 }
 
 func (this PathFinder) IsFinal(point Point) bool {
-	i, j := this.Final()
-	return point.i == i && point.j == j
+	max_i, max_j := this.Bounds()
+	return point.i == max_i && point.j == max_j
 }
 
-// // Find index of the candidate point with smallest heat loss
-// func (this *PathFinder) Next() int {
-// 	var (
-// 		index int
-// 		best  int = math.MaxInt
-// 	)
-// 	for i, candidate := range this.next {
-// 		if candidate.loss < best {
-// 			index = i
-// 			best = candidate.loss
-// 		}
-// 	}
-// 	return index
-// }
+func (this PathFinder) Loss() int {
+	i, j := this.Bounds()
+	return this.min_loss[i][j]
+}
 
-// func pop[T any](arr []T, index int) (T, []T) {
-// 	if index+1 > len(arr) {
-// 		return arr[index], arr[:index]
-// 	} else {
-// 		return arr[index], append(arr[:index], arr[index+1:]...)
-// 	}
-// }
-
-func (this *PathFinder) FindPath() int {
+func (this *PathFinder) FindPath() {
 	var current Point
 	for {
 		slices.SortFunc(this.next, func(a, b Point) int {
@@ -172,20 +156,12 @@ func (this *PathFinder) FindPath() int {
 		// fmt.Println(current)
 		// fmt.Println(this.next)
 
-		// index := this.Next()
-		// current, this.next = pop(this.next, index)
-
 		current = this.next[0]
 		this.next = this.next[1:]
 
-		if this.IsFinal(current) {
-			return current.loss
+		if len(this.next) == 0 {
+			return
 		}
-
-		// if len(this.next) == 0 {
-		// 	i, j := this.Final()
-		// 	return this.min_loss[i][j]
-		// }
 
 		this.Explore(current)
 	}
@@ -212,14 +188,14 @@ func main() {
 		grid = append(grid, row)
 	}
 
-	// for _, row := range grid {
-	// 	fmt.Println(row)
-	// }
-
 	finder := NewPathFinder(grid)
-	fmt.Println(finder.FindPath())
 
+	finder.FindPath()
+	// fmt.Println(finder.Loss())
 	for _, row := range finder.min_loss {
-		fmt.Println(row)
+		for _, x := range row {
+			fmt.Printf("%3.d ", x)
+		}
+		fmt.Println()
 	}
 }
