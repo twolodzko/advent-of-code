@@ -10,158 +10,165 @@ import (
 type Direction string
 
 const (
-	Left  Direction = "Left"
-	Right Direction = "Right"
-	Down  Direction = "Down"
+	Left  Direction = "<"
+	Right Direction = ">"
+	Up    Direction = "^"
+	Down  Direction = "v"
 )
 
-func (this Direction) String() string {
-	return string(this)
+func (this Direction) IsReverse(other Direction) bool {
+	switch this {
+	case Left:
+		return this == Right
+	case Right:
+		return this == Left
+	case Up:
+		return this == Down
+	default:
+		return this == Up
+	}
+}
+
+type MoveHistory struct {
+	direction Direction
+	count     int
+	loss      int
 }
 
 type Point struct {
 	i, j int
+	MoveHistory
 }
-
-func (this Point) Equal(other Point) bool {
-	return this.i == other.i && this.j == other.j
-}
-
-// type MoveHistory struct {
-// 	direction Direction
-// 	count     int
-// }
-
-// func (this MoveHistory) To(direction Direction) MoveHistory {
-// 	move := MoveHistory{direction, 1}
-// 	if this.direction == direction {
-// 		move.count += this.count
-// 	}
-// 	return move
-// }
 
 type PathFinder struct {
-	grid     [][]int
-	loss     [][]int
-	explored [][]bool
+	heat     [][]int
+	min_loss [][]int
 	current  Point
-	final    Point
-	next     map[Point]bool
-	// history  [][]MoveHistory
-}
-
-func Matrix[T any](n, k int) [][]T {
-	var mtx [][]T
-	for i := 0; i < n; i++ {
-		row := make([]T, k)
-		mtx = append(mtx, row)
-	}
-	return mtx
+	next     []Point
 }
 
 func NewPathFinder(grid [][]int) PathFinder {
 	n := len(grid)
 	k := len(grid[0])
 
-	var loss [][]int
+	var min_loss [][]int
 	for i := 0; i < n; i++ {
 		var row []int
 		for j := 0; j < k; j++ {
 			row = append(row, math.MaxInt)
 		}
-		loss = append(loss, row)
+		min_loss = append(min_loss, row)
 	}
-	loss[0][0] = grid[0][0]
+	min_loss[0][0] = 0
 
-	var explored [][]bool
-	for i := 0; i < n; i++ {
-		explored = append(explored, make([]bool, k))
-	}
-	explored[0][0] = true
-
-	// var prev [][]MoveHistory
-	// for i := 0; i < n; i++ {
-	// 	var row []MoveHistory
-	// 	for j := 0; j < k; j++ {
-	// 		row = append(row, MoveHistory{Direction("Left"), 0})
-	// 	}
-	// 	prev = append(prev, row)
-	// }
-
-	current := Point{0, 0}
-	final := Point{len(grid) - 1, len(grid[0]) - 1}
-	next := make(map[Point]bool)
-	return PathFinder{grid, loss, explored, current, final, next} //, prev}
+	hist := MoveHistory{Up, 0, 0}
+	current := Point{0, 0, hist}
+	next := []Point{}
+	return PathFinder{grid, min_loss, current, next}
 }
 
-func (this Point) Move(direction Direction) Point {
-	switch direction {
-	case Left:
-		this.j--
-	case Right:
-		this.j++
-	default:
-		this.i++
-	}
-	return this
-}
+// Check where we can go from this point
+func (this *PathFinder) Explore(point Point) {
+	var i, j, count, loss int
+	for _, direction := range []Direction{Left, Right, Up, Down} {
 
-// Check where we can go from `this.current`
-func (this *PathFinder) Explore() {
-	for _, direction := range []Direction{"Left", "Right", "Down"} {
-		location := this.current.Move(direction)
-
-		if location.i < 0 || location.i >= len(this.grid) || location.j < 0 || location.j >= len(this.grid[0]) {
+		if point.direction.IsReverse(direction) {
+			// cannot go back
 			continue
 		}
-		if this.explored[location.i][location.j] {
+
+		i = point.i
+		j = point.j
+
+		switch direction {
+		case Up:
+			i--
+			if i < 0 {
+				continue
+			}
+		case Down:
+			i++
+			if i > len(this.heat)-1 {
+				continue
+			}
+		case Left:
+			j--
+			if j < 0 {
+				continue
+			}
+		case Right:
+			j++
+			if j > len(this.heat[0])-1 {
+				continue
+			}
+		}
+
+		if point.direction == direction {
+			count = point.count + 1
+			// too many moves in the same direction
+			if count >= 3 {
+				continue
+			}
+		} else {
+			count = 1
+		}
+
+		loss = point.loss + this.heat[i][j]
+		if loss < this.min_loss[i][j] {
+			this.min_loss[i][j] = loss
+		} else {
+			// other variation already reached it with smaller loss
 			continue
 		}
-		// hist := this.history[this.current.x][this.current.y].To(direction)
-		// if hist.count >= 3 {
-		// 	continue
-		// }
 
-		this.next[location] = true
-
-		// this.history[location.x][location.y] = hist
-		loss := this.loss[this.current.i][this.current.j] + this.grid[location.i][location.j]
-		this.loss[location.i][location.j] = min(this.loss[location.i][location.j], loss)
+		hist := MoveHistory{direction, count, loss}
+		this.next = append(this.next, Point{i, j, hist})
 	}
 }
 
-// Switch `this.current` to the candidate from `this.next` with smallest loss
-func (this PathFinder) Next() Point {
-	best := math.MaxInt
-	var move Point
-	for candidate, ok := range this.next {
-		if ok {
-			// we reached the destination
-			if candidate.Equal(this.final) {
-				return candidate
-			}
+func (this PathFinder) IsFinal(point Point) bool {
+	return point.i == len(this.heat)-1 && point.j == len(this.heat[0])-1
+}
 
-			loss := this.loss[candidate.i][candidate.j]
-			if loss < best {
-				move = candidate
-				best = loss
-			}
+// Find index of the candidate point with smallest heat loss
+func (this *PathFinder) Next() int {
+	var (
+		index int
+		best  int = math.MaxInt
+	)
+	for i, candidate := range this.next {
+		// we reached the destination
+		if this.IsFinal(candidate) {
+			return i
+		}
+
+		if candidate.loss < best {
+			index = i
+			best = candidate.loss
 		}
 	}
-	return move
+	return index
+}
+
+func pop[T any](arr []T, index int) (T, []T) {
+	if index >= len(arr) {
+		return arr[index], arr[:index]
+	} else {
+		return arr[index], append(arr[:index], arr[index+1:]...)
+	}
 }
 
 func (this *PathFinder) FindPath() int {
 	for {
-		this.Explore()
-		move := this.Next()
+		fmt.Println(this.current)
+		// fmt.Println(this.next)
 
-		this.next[move] = false
-		this.explored[move.i][move.j] = true
-		this.current = move
+		this.Explore(this.current)
+		index := this.Next()
+		this.current, this.next = pop(this.next, index)
 
-		if move.Equal(this.final) {
-			return this.loss[move.i][move.j]
+		if len(this.next) == 0 {
+			return this.min_loss[len(this.min_loss)-1][len(this.min_loss[0])-1]
 		}
 	}
 }
@@ -193,4 +200,8 @@ func main() {
 
 	finder := NewPathFinder(grid)
 	fmt.Println(finder.FindPath())
+
+	for _, row := range finder.min_loss {
+		fmt.Println(row)
+	}
 }
