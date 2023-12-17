@@ -43,7 +43,6 @@ type Point struct {
 type PathFinder struct {
 	heat     [][]int
 	min_loss [][]int
-	current  Point
 	next     []Point
 }
 
@@ -60,11 +59,14 @@ func NewPathFinder(grid [][]int) PathFinder {
 		min_loss = append(min_loss, row)
 	}
 	min_loss[0][0] = 0
+	min_loss[0][1] = grid[0][1]
+	min_loss[1][0] = grid[1][0]
 
-	hist := MoveHistory{Up, 0, 0}
-	current := Point{0, 0, hist}
-	next := []Point{}
-	return PathFinder{grid, min_loss, current, next}
+	next := []Point{
+		{0, 1, MoveHistory{Right, 1, grid[0][1]}},
+		{1, 0, MoveHistory{Down, 1, grid[1][0]}},
+	}
+	return PathFinder{grid, min_loss, next}
 }
 
 // Check where we can go from this point
@@ -159,17 +161,19 @@ func pop[T any](arr []T, index int) (T, []T) {
 }
 
 func (this *PathFinder) FindPath() int {
+	var current Point
 	for {
-		fmt.Println(this.current)
-		// fmt.Println(this.next)
+		// fmt.Println(this.current)
+		fmt.Println(this.next)
 
-		this.Explore(this.current)
 		index := this.Next()
-		this.current, this.next = pop(this.next, index)
+		current, this.next = pop(this.next, index)
 
-		if len(this.next) == 0 {
-			return this.min_loss[len(this.min_loss)-1][len(this.min_loss[0])-1]
+		if this.IsFinal(current) {
+			return current.loss
 		}
+
+		this.Explore(current)
 	}
 }
 
@@ -201,7 +205,7 @@ func main() {
 	finder := NewPathFinder(grid)
 	fmt.Println(finder.FindPath())
 
-	for _, row := range finder.min_loss {
-		fmt.Println(row)
-	}
+	// for _, row := range finder.min_loss {
+	// 	fmt.Println(row)
+	// }
 }
