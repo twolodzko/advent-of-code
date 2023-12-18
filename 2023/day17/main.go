@@ -16,7 +16,6 @@ const (
 	Right Direction = ">"
 	Up    Direction = "^"
 	Down  Direction = "v"
-	None  Direction = "."
 )
 
 var Directions = [4]Direction{Left, Right, Up, Down}
@@ -32,7 +31,7 @@ func (this Direction) IsReverse(other Direction) bool {
 	case Down:
 		return other == Up
 	default:
-		return false
+		panic("not reachable")
 	}
 }
 
@@ -80,7 +79,7 @@ func NewPathFinder(heat [][]int, min_straight, max_straight int) PathFinder {
 		{State{0, 1, Right, 1}, heat[0][1]},
 		{State{1, 0, Down, 1}, heat[1][0]},
 	}
-	loss[State{0, 0, None, 0}] = init
+	loss[State{0, 0, Down, 0}] = init
 	for _, candidate := range next {
 		loss[candidate.State] = candidate.loss
 	}
@@ -173,6 +172,7 @@ func (this PathFinder) FinalLoss() int {
 	return this.MinLossAt(max_i, max_j)
 }
 
+// Use Dijkstra's algorithm to find the best path
 func (this *PathFinder) FindPath() {
 	for len(this.next) > 0 {
 		slices.SortFunc(this.next, func(a, b Candidate) int {
@@ -185,9 +185,6 @@ func (this *PathFinder) FindPath() {
 		if this.IsFinal(current.State) {
 			return
 		}
-
-		// fmt.Println(current)
-		// fmt.Println(this.next)
 
 		this.Explore(current)
 	}
