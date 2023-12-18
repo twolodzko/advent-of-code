@@ -16,6 +16,7 @@ const (
 	Right Direction = ">"
 	Up    Direction = "^"
 	Down  Direction = "v"
+	None  Direction = "."
 )
 
 var Directions = [4]Direction{Left, Right, Up, Down}
@@ -23,13 +24,15 @@ var Directions = [4]Direction{Left, Right, Up, Down}
 func (this Direction) IsReverse(other Direction) bool {
 	switch this {
 	case Left:
-		return this == Right
+		return other == Right
 	case Right:
-		return this == Left
+		return other == Left
 	case Up:
-		return this == Down
+		return other == Down
+	case Down:
+		return other == Up
 	default:
-		return this == Up
+		return false
 	}
 }
 
@@ -45,9 +48,10 @@ type Candidate struct {
 }
 
 type PathFinder struct {
-	heat [][]int
-	loss map[State]int
-	next []Candidate
+	heat         [][]int
+	loss         map[State]int
+	next         []Candidate
+	max_straight int
 }
 
 type Losses map[Direction]int
@@ -68,20 +72,16 @@ func (this Losses) Min() int {
 	return best
 }
 
-func NewPathFinder(heat [][]int) PathFinder {
+func NewPathFinder(heat [][]int, max_straight int) PathFinder {
 	init := heat[0][0]
 	loss := make(map[State]int)
-	for _, direction := range Directions {
-		loss[State{0, 0, direction, 1}] = init
-	}
 	next := []Candidate{
-		{State{0, 1, Right, 0}, init + heat[0][1]},
-		{State{1, 0, Down, 0}, init + heat[1][0]},
+		{State{0, 0, None, 0}, 0},
 	}
 	for _, candidate := range next {
-		loss[candidate.State] = candidate.loss
+		loss[candidate.State] = init
 	}
-	return PathFinder{heat, loss, next}
+	return PathFinder{heat, loss, next, max_straight}
 }
 
 // Check where we can go from this point
@@ -95,14 +95,16 @@ func (this *PathFinder) Explore(from Candidate) {
 			continue
 		}
 
-		current := State{from.i, from.j, direction, 1}
+		var count int
 		if from.Direction == direction {
-			current.count = from.count + 1
-			// too many moves in the same direction
-			if current.count > 3 {
+			count = from.count + 1
+			if count > 3 {
 				continue
 			}
+		} else {
+			count = 1
 		}
+		current := State{from.i, from.j, direction, count}
 
 		switch direction {
 		case Up:
@@ -128,7 +130,7 @@ func (this *PathFinder) Explore(from Candidate) {
 		}
 
 		loss := from.loss + this.heat[current.i][current.j]
-		if prev, ok := this.loss[current]; ok && prev <= loss {
+		if old_loss, ok := this.loss[current]; ok && old_loss <= loss {
 			continue
 		}
 
@@ -166,22 +168,17 @@ func (this PathFinder) FinalLoss() int {
 }
 
 func (this *PathFinder) FindPath() {
-	var current Candidate
-	for {
-		if len(this.next) == 0 {
-			return
-		}
-
+	for len(this.next) > 0 {
 		slices.SortFunc(this.next, func(a, b Candidate) int {
 			return cmp.Compare(a.loss, b.loss)
 		})
 
-		current = this.next[0]
+		current := this.next[0]
 		this.next = this.next[1:]
 
-		// if this.IsFinal(current.State) {
-		// 	return
-		// }
+		if this.IsFinal(current.State) {
+			return
+		}
 
 		// fmt.Println(current)
 		// fmt.Println(this.next)
@@ -205,6 +202,13 @@ func (this PathFinder) Show() {
 	}
 }
 
+func part1(grid [][]int) {
+	finder := NewPathFinder(grid, 3)
+	finder.FindPath()
+	// finder.Show()
+	fmt.Println(finder.FinalLoss())
+}
+
 func main() {
 	file, err := os.Open(os.Args[1])
 	if err != nil {
@@ -226,10 +230,5 @@ func main() {
 		grid = append(grid, row)
 	}
 
-	finder := NewPathFinder(grid)
-
-	finder.FindPath()
-	finder.Show()
-
-	fmt.Println(finder.FinalLoss())
+	part1(grid)
 }
