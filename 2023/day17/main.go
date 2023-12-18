@@ -51,6 +51,7 @@ type PathFinder struct {
 	heat         [][]int
 	loss         map[State]int
 	next         []Candidate
+	min_straight int
 	max_straight int
 }
 
@@ -72,16 +73,18 @@ func (this Losses) Min() int {
 	return best
 }
 
-func NewPathFinder(heat [][]int, max_straight int) PathFinder {
+func NewPathFinder(heat [][]int, min_straight, max_straight int) PathFinder {
 	init := heat[0][0]
 	loss := make(map[State]int)
 	next := []Candidate{
-		{State{0, 0, None, 0}, 0},
+		{State{0, 1, Right, 1}, heat[0][1]},
+		{State{1, 0, Down, 1}, heat[1][0]},
 	}
+	loss[State{0, 0, None, 0}] = init
 	for _, candidate := range next {
-		loss[candidate.State] = init
+		loss[candidate.State] = candidate.loss
 	}
-	return PathFinder{heat, loss, next, max_straight}
+	return PathFinder{heat, loss, next, min_straight, max_straight}
 }
 
 // Check where we can go from this point
@@ -98,10 +101,13 @@ func (this *PathFinder) Explore(from Candidate) {
 		var count int
 		if from.Direction == direction {
 			count = from.count + 1
-			if count > 3 {
+			if count > this.max_straight {
 				continue
 			}
 		} else {
+			if from.count < this.min_straight {
+				continue
+			}
 			count = 1
 		}
 		current := State{from.i, from.j, direction, count}
@@ -149,7 +155,7 @@ func (this PathFinder) MinLossAt(i, j int) int {
 	best := math.MaxInt
 	for state, loss := range this.loss {
 		if state.i == i && state.j == j {
-			if loss < best {
+			if loss < best && state.count >= this.min_straight {
 				best = loss
 			}
 		}
@@ -159,7 +165,7 @@ func (this PathFinder) MinLossAt(i, j int) int {
 
 func (this PathFinder) IsFinal(state State) bool {
 	max_i, max_j := this.Bounds()
-	return state.i == max_i && state.j == max_j
+	return state.i == max_i && state.j == max_j && state.count >= this.min_straight
 }
 
 func (this PathFinder) FinalLoss() int {
@@ -203,7 +209,14 @@ func (this PathFinder) Show() {
 }
 
 func part1(grid [][]int) {
-	finder := NewPathFinder(grid, 3)
+	finder := NewPathFinder(grid, 0, 3)
+	finder.FindPath()
+	// finder.Show()
+	fmt.Println(finder.FinalLoss())
+}
+
+func part2(grid [][]int) {
+	finder := NewPathFinder(grid, 4, 10)
 	finder.FindPath()
 	// finder.Show()
 	fmt.Println(finder.FinalLoss())
@@ -231,4 +244,5 @@ func main() {
 	}
 
 	part1(grid)
+	part2(grid)
 }
