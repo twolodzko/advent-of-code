@@ -49,7 +49,8 @@ type FlipFlop struct {
 }
 
 func (this FlipFlop) String() string {
-	return fmt.Sprintf("%%%s", this.name)
+	// return fmt.Sprintf("%%%s", this.name)
+	return fmt.Sprint(this.state)
 }
 
 func (this *FlipFlop) Receive(from string, pulse Pulse) {
@@ -72,7 +73,8 @@ type Conjunction struct {
 }
 
 func (this Conjunction) String() string {
-	return fmt.Sprintf("&%s", this.name)
+	// return fmt.Sprintf("&%s", this.name)
+	return fmt.Sprint(this.states)
 }
 
 func (this *Conjunction) Reset() {
@@ -243,12 +245,50 @@ func BroadcastFrom(scanner *bufio.Scanner) Broadcast {
 	return broadcast
 }
 
+type State struct {
+	iteration int
+	state     map[string]Module
+	low, high int
+}
+
 func part1(broadcast Broadcast) {
-	var low, high int
-	for i := 0; i < 1000; i++ {
+	var (
+		i         int
+		low, high int
+	)
+	memory := make(map[string]State)
+
+	for i < 1000 {
+		// fmt.Println(i)
+		key := fmt.Sprint(broadcast.modules)
+		if state, ok := memory[key]; ok {
+			// fmt.Printf("it was already seen on iteration %d\n", state.iteration)
+			jump := i - state.iteration
+			// jump := (1000 - i) / cycle
+
+			if jump > 0 && i+jump < 1000 {
+				fmt.Printf("jump = %d\n", jump)
+				i += jump
+				low += (low - state.low)
+				high += (high - state.high)
+				// broadcast.modules = state.state
+				jump = 0
+				continue
+			}
+		} else {
+			clone := make(map[string]Module)
+			for k, v := range broadcast.modules {
+				clone[k] = v
+			}
+			memory[key] = State{i, clone, low, high}
+		}
+
 		l, h := broadcast.Broadcast()
 		low += l
 		high += h
+		i++
+
+		// fmt.Println(low, high)
 	}
 	fmt.Println(low * high)
 }
@@ -263,6 +303,7 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	broadcast := BroadcastFrom(scanner)
 
+	// fmt.Println(broadcast.modules)
 	part1(broadcast)
 
 	// fmt.Println(broadcast.Broadcast())
